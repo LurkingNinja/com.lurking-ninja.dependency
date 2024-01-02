@@ -1,0 +1,16 @@
+{
+  "name": "com.lurking-ninja.dependency",
+  "description": "Simplified dependency Injection for Unity utilizing SoourceGeneration making it as performant as possible.",
+  "displayName": "Dependency Injection",
+  "version": "0.0.1",
+  "unity": "2021.3",
+  "documentationUrl": "https://github.com/LurkingNinja/com.lurking-ninja.dependency",
+  "changelogUrl": "https://github.com/LurkingNinja/com.lurking-ninja.dependency/blob/main/CHANGELOG.md",
+  "license": "MIT",
+  "licensesUrl": "https://github.com/LurkingNinja/com.lurking-ninja.dependency/blob/main/LICENSE",
+  "author": {
+    "name": "Lurking Ninja",
+    "email": "dev@lurking-ninja.com",
+    "url": "https://lurking-ninja.com/"
+  }
+}

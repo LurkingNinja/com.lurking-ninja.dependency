@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <RootNamespace>LurkingNinja.Attributes</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DebugType>none</DebugType>
+    </PropertyGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="copy bin\Release\netstandard2.0\Attributes.dll ..\..\Packages\com.lurking-ninja.dependency\Runtime\SourceGenerator\Attributes.dll" />
+    </Target>
+
+</Project>
