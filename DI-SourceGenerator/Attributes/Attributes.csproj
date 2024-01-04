@@ -6,11 +6,11 @@
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <DebugType>none</DebugType>
+        <DebugType>none</DebugType>
     </PropertyGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="copy bin\Release\netstandard2.0\Attributes.dll ..\..\Packages\com.lurking-ninja.dependency\Runtime\SourceGenerator\Attributes.dll" />
+        <Exec Command="copy bin\Release\netstandard2.0\Attributes.dll ..\..\Packages\com.lurking-ninja.dependency\Runtime\SourceGenerator\Attributes.dll" />
     </Target>
 
 </Project>

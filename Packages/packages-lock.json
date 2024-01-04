@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.lurking-ninja.csharp-templates": {
+      "version": "https://github.com/LurkingNinja/com.lurking-ninja.csharp-templates.git?path=Packages/com.lurking-ninja.csharp-templates",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "5c254c872ced6508c76df5bcdbedfed61a7e888b"
+    },
     "com.lurking-ninja.dependency": {
       "version": "file:com.lurking-ninja.dependency",
       "depth": 0,

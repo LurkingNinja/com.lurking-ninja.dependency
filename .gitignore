@@ -65,6 +65,8 @@ crashlytics-build.properties
 [Oo]bj
 [Tt]emp
 [Uu]ser[Ss]ettings
+[Aa]ssets/[Pp]lugins/LurkingNinja
+[Aa]ssets/[Pp]lugins/LurkingNinja.meta
 
 !DI-SourceGenerator/DI-SourceGenerator.sln
 !DI-SourceGenerator/SourceGenerator/SourceGenerator.csproj
