@@ -74,7 +74,8 @@ namespace DoTest
 ```
 And this code results in this inspector:
 ![Inspector with injected references](docs/inspector.png)
-
+<br>
+<br>
 ## API
 The system is based on attributes. You decorate your fields and properties with the following attributes and
 the source generator will generate the appropriate code to put the searched reference in it.
@@ -90,6 +91,8 @@ field is not serializable by Unity  with the only current exception of [Collecti
 automatically to [InjectInPlay](#injectinplay) mode.
 It is also your responsibility currently to call ```InjectInEditor()``` from the [OnValidate](https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnValidate.html)
 method and the ```InjectInPlay()``` method either from your [Awake()](https://docs.unity3d.com/ScriptReference/MonoBehaviour.Awake.html) or [Start()](https://docs.unity3d.com/ScriptReference/MonoBehaviour.Start.html) method.
+<br>
+<br>
 #### Get
 The most basic attribute, implements a [GetComponent<T>()](https://docs.unity3d.com/ScriptReference/GameObject.GetComponent.html) call and store the result in the field or property you
 decorate with this attribute. It only searches on the same game object.
@@ -97,7 +100,8 @@ decorate with this attribute. It only searches on the same game object.
 Available modifier attributes are: [InjectInPlay](#injectinplay) and [SkipNullCheck](#skipnullcheck).
 
 ```TODO: Allow the usage on Lists, Arrays and Collections.```
-
+<br>
+<br>
 #### GetByName
 This attribute generates a [GameObject.Find(gameObjectName)](https://docs.unity3d.com/ScriptReference/GameObject.Find.html).[GetComponent<T>()](https://docs.unity3d.com/ScriptReference/GameObject.GetComponent.html) line. The ```gameObjectName``` is a
 ```string``` parameter and should be passed in the ```GetByName``` attribute.
@@ -108,51 +112,65 @@ often in [InjectInPlay](#injectinplay) because it is a slow search.
 Available modifier attributes are: [InjectInPlay](#injectinplay) and [SkipNullCheck](#skipnullcheck).
 
 ```TODO: Allow the usage on Lists, Arrays and Collections.```
-
+<br>
+<br>
 #### GetByTag
 Generates a [GameObject.FindWithTag(tagName)](https://docs.unity3d.com/ScriptReference/GameObject.FindWithTag.html).[GetComponent<T>()](https://docs.unity3d.com/ScriptReference/GameObject.GetComponent.html) call. The ```tagName``` should be passed in to the 
 ```GetByTag``` attribute.
 This can be used on [Arrays](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/arrays), [List<T>](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1?view=netstandard-2.1) and [Collection<T>](https://learn.microsoft.com/en-us/dotnet/api/system.collections.objectmodel.collection-1?view=netstandard-2.1).
 
 Available modifier attributes are: [InjectInPlay](#injectinplay) and [SkipNullCheck](#skipnullcheck).
-
+<br>
+<br>
 #### GetInAssets
-
+***TODO***: Document how AssetDatabase Search works here. 
+<br>
+<br>
 #### GetInChildren
 Utilizes a [GameObject.GetComponentInChildren<T>(includeInactive)](https://docs.unity3d.com/ScriptReference/Component.GetComponentInChildren.html).
 If it is called on arrays, collections or lists it generates [GameObject.GetComponentsInChildren](https://docs.unity3d.com/ScriptReference/Component.GetComponentsInChildren.html).
 This can be used on [Arrays](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/arrays), [List<T>](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1?view=netstandard-2.1) and [Collection<T>](https://learn.microsoft.com/en-us/dotnet/api/system.collections.objectmodel.collection-1?view=netstandard-2.1).
 
 Available modifier attributes are: [IncludeInactive](#includeinactive), [InjectInPlay](#injectinplay) and [SkipNullCheck](#skipnullcheck).
-
+<br>
+<br>
 #### GetInParent
 It generates a [GameObject.GetComponentInParent](https://docs.unity3d.com/ScriptReference/GameObject.GetComponentInParent.html) call.
 If it is called on arrays, collections or lists it generates [GameObject.GetComponentsInParent](https://docs.unity3d.com/ScriptReference/GameObject.GetComponentsInParent.html).
 This can be used on [Arrays](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/arrays), [List<T>](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1?view=netstandard-2.1) and [Collection<T>](https://learn.microsoft.com/en-us/dotnet/api/system.collections.objectmodel.collection-1?view=netstandard-2.1).
+<br>
+<br>
 
 #### FindWithTag
 ***TODO*** It will utilize the [FindGameObjectsWithTag](https://docs.unity3d.com/ScriptReference/GameObject.FindGameObjectsWithTag.html) method.
-
+<br>
+<br>
 ### Modifier attributes
 These have no effect alone but modifying the behavior of the base attributes or the generation process.
-
+<br>
+<br>
 #### IgnoreSelf
 When  it is allowed to use, it filters out the current game object from the results.
-
+<br>
+<br>
 #### IncludeInactive
 When it is permitted to use, the search will include inactive components or game objects as well.
-
+<br>
+<br>
 #### InjectInPlay
 It causes to put the generation into the ```InjectInPlay()``` instead of the ```InjectInEditor()``` method allowing you
 to call it during play-mode or in build.
-
+<br>
+<br>
 #### SkipNullCheck
 If this attribute is added to a field or property, there won't be a null-check performed when a value is added  causing
 overwrite no matter if another value is already attached or not.
-
+<br>
+<br>
 ## TODO
 - FindWithTag
 - Allow some cases the usage on Lists, Arrays and Collections
+- Add more available receiving types.
 - Restructure the system to be more modular to perform game object searches and component searches allowing to finda list of one component on multiple game objects or find one game object and multiple components on it or multiple game objects and multiple components on them.
 - Building a more robust searching and filtering system, but staying on source generation.
 - Adding non-Unity dependency injection of sorts
