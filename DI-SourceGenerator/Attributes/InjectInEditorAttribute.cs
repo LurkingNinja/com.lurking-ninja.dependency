@@ -3,5 +3,8 @@
 namespace LurkingNinja.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class IncludeInactive : Attribute {}
+    public class InjectInEditor : Attribute
+    {
+        public InjectInEditor(string gameObjectName) {}
+    }
 }

@@ -2,33 +2,15 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
-using LurkingNinja.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace LurkingNinja.SourceGenerator
 {
-    internal static class Common
+    internal static class Helper
     {
         private const string FILENAME_POSTFIX = "_codegen.cs";
-        
-        internal const string GET_ATTRIBUTE = nameof(Get);
-        internal const string GET_BY_NAME_ATTRIBUTE = nameof(GetByName);
-        internal const string GET_BY_TAG_ATTRIBUTE = nameof(GetByTag);
-        internal const string GET_IN_ASSETS_ATTRIBUTE = nameof(GetInAssets);
-        internal const string GET_IN_CHILDREN_ATTRIBUTE = nameof(GetInChildren);
-        internal const string GET_IN_PARENT_ATTRIBUTE = nameof(GetInParent);
-        internal const string IGNORE_SELF_ATTRIBUTE = nameof(IgnoreSelf);
-        internal const string SKIP_NULL_CHECK_ATTRIBUTE = nameof(SkipNullCheck);
-        internal const string INCLUDE_INACTIVE_ATTRIBUTE = nameof(IncludeInactive);
-        internal const string INJECT_IN_PLAY_ATTRIBUTE = nameof(InjectInPlay);
-
-        internal static readonly string[] ValidAttributes =
-        {
-            GET_ATTRIBUTE, GET_BY_NAME_ATTRIBUTE, GET_BY_TAG_ATTRIBUTE, GET_IN_ASSETS_ATTRIBUTE,
-            GET_IN_CHILDREN_ATTRIBUTE, GET_IN_PARENT_ATTRIBUTE
-        };
 
         /*
          * {0} name space if exists
@@ -36,20 +18,71 @@ namespace LurkingNinja.SourceGenerator
          * {2} class definition
          * {3} using directives
          */
-        private const string NS_TEMPLATE = @"{3}
+        private const string FILE_TEMPLATE = @"{3}
 {0}
     {2}
 {1}";
 
-        private static string NamespaceTemplateResolve(string usingDirectives, string nameSpace, string source)
+        internal static string FileTemplateResolve(string usingDirectives, string nameSpace, string source)
         {
             var ns = GetNamespaceTemplate(nameSpace);
-            return string.Format(NS_TEMPLATE,
+            return string.Format(FILE_TEMPLATE,
                 /*{0}*/ns.Item1,
                 /*{1}*/ns.Item2,
                 /*{2}*/source,
                 /*{3}*/usingDirectives);
         }
+
+        /*
+         * {0} class accessor
+         * {1} "sealed " or empty
+         * {2} class name
+         * {3} class source
+         */
+        private const string CLASS_TEMPLATE = @"{0} partial {1}class {2} {{
+        {3}
+}}";
+
+        internal static string ClassTemplateResolve(
+                string accessor, string sealedOrEmpty, string className, string source) =>
+            string.Format(CLASS_TEMPLATE,
+                /*{0}*/accessor,
+                /*{1}*/sealedOrEmpty,
+                /*{2}*/className,
+                /*{3}*/source);
+
+        /*
+         * {0} source
+         */
+        private const string INITIALIZE_EDITOR_TEMPLATE = @"#if UNITY_EDITOR
+private void InitializeInEditor() {{
+    {0}
+}}
+#endif";
+
+        internal static string InEditorResolve(string methodSource) =>
+            string.Format(INITIALIZE_EDITOR_TEMPLATE, methodSource);
+        
+        /*
+         * {0} source
+         */
+        private const string INITIALIZE_RUNTIME_TEMPLATE = @"private void InitializeInRuntime() {{
+{0}
+}}";
+
+        internal static string InRuntimeResolve(string methodSource) =>
+            string.Format(INITIALIZE_RUNTIME_TEMPLATE, methodSource);
+
+        internal const string AWAKE_TEMPLATE = @"private void private void Awake() => InitializeInRuntime();";
+
+        internal const string ON_VALIDATE_TEMPLATE = @"#if UNITY_EDITOR
+private void OnValidate() => InitializeInEditor();
+#endif";
+        
+        internal static string GetBaseType(string type) => type
+                .Replace("[]", string.Empty)
+                .Replace("List<", string.Empty)
+                .Replace(">", "");
 
         internal static string GetClassNameOf(SyntaxNode node) =>
             GetClassOf(node).Identifier.ValueText;
@@ -108,10 +141,8 @@ namespace LurkingNinja.SourceGenerator
         internal static bool IsPartial(ClassDeclarationSyntax cds) =>
             cds.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
 
-        internal static SyntaxNode HasAnyAttribute(GeneratorSyntaxContext ctx, CancellationToken token) =>
-            ValidAttributes.Any(attribute => HasAttribute(ctx.Node, attribute))
-                ? ctx.Node
-                : null;
+        internal static SyntaxNode HasAnyValidAttribute(GeneratorSyntaxContext ctx, CancellationToken token) =>
+            Attribute.HasAnyValidAttribute(ctx.Node) ? ctx.Node : null;
 
         private static SyntaxList<AttributeListSyntax> GetAttributeList(SyntaxNode syntaxNode)
         {
@@ -121,11 +152,12 @@ namespace LurkingNinja.SourceGenerator
                     return fds.AttributeLists;
                 case PropertyDeclarationSyntax pds:
                     return pds.AttributeLists;
+                case ClassDeclarationSyntax pds:
+                    return pds.AttributeLists;
                 default:
                     return new SyntaxList<AttributeListSyntax>();
             }
         }
-        
         internal static bool HasAttribute(SyntaxNode syntaxNode, string attributeName) =>
             GetAttributeList(syntaxNode)
                 .SelectMany(nodeAttribute => nodeAttribute.Attributes)
@@ -156,9 +188,7 @@ namespace LurkingNinja.SourceGenerator
         internal static string GetAttributeParam(SyntaxNode syntaxNode, string attribute, string parameter, Compilation comp)
         {
             if (syntaxNode?.Parent == null) return null;
-            
             var semanticModel = comp?.GetSemanticModel(syntaxNode.SyntaxTree, true);
-            
             ISymbol symbol;
             switch (syntaxNode)
             {
@@ -171,8 +201,9 @@ namespace LurkingNinja.SourceGenerator
                 default:
                     return null;
             }
+
             if (symbol is null) return null;
-            
+
             foreach (var attributeData in symbol.GetAttributes())
             {
                 if (attributeData.AttributeClass is null
@@ -186,7 +217,6 @@ namespace LurkingNinja.SourceGenerator
                     if (namedArgument.Key.Trim().Equals(parameter.Trim())) return namedArgument.Value.ToString();
                 }
             }
-
             return null;
         }
         
@@ -196,7 +226,7 @@ namespace LurkingNinja.SourceGenerator
         internal static void AddSourceNs(SourceProductionContext ctx, string filename,
                 string usingDirectives, ClassDeclarationSyntax cds, string source, bool log = false)
         {
-            source = NamespaceTemplateResolve(usingDirectives, GetNamespace(cds), source);
+            source = FileTemplateResolve(usingDirectives, GetNamespace(cds), source);
             AddSource(ctx, filename, source);
             
             if (!log) return;

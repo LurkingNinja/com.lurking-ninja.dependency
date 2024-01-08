@@ -3,8 +3,8 @@
 namespace LurkingNinja.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class GetByName : Attribute
+    public class FindByTag : Attribute
     {
-        public GetByName(string gameObjectName) {}
+        public FindByTag(string tagName) {}
     }
 }

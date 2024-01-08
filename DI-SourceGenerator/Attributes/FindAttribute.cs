@@ -3,8 +3,8 @@
 namespace LurkingNinja.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class GetInAssets : Attribute
+    public class Find : Attribute
     {
-        public GetInAssets(string assetSearchPath) {}
+        public Find(string gameObjectName) {}
     }
 }
