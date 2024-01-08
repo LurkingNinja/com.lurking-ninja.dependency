@@ -3,8 +3,8 @@
 namespace LurkingNinja.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class FindByTag : Attribute
+    public class FindWithTag : Attribute
     {
-        public FindByTag(string tagName) {}
+        public FindWithTag(string tagName) {}
     }
 }

@@ -7,7 +7,7 @@ namespace LurkingNinja.SourceGenerator
     internal static class Attribute
     {
         private const string FIND = nameof(Find);
-        private const string FIND_BY_TAG = nameof(FindByTag);
+        private const string FIND_WITH_TAG = nameof(FindWithTag);
         private const string GENERATE_AWAKE = nameof(GenerateAwake);
         private const string GENERATE_INITIALIZERS = nameof(GenerateInitializers);
         private const string GENERATE_ON_VALIDATE = nameof(GenerateOnValidate);
@@ -22,12 +22,12 @@ namespace LurkingNinja.SourceGenerator
 
         private static readonly string[] _validBaseAttributes =
         {
-            FIND, FIND_BY_TAG, GET, GET_IN_CHILDREN, GET_IN_PARENT
+            FIND, FIND_WITH_TAG, GET, GET_IN_CHILDREN, GET_IN_PARENT
         };
 
         private static readonly string[] _validGameObjectAttributes =
         {
-            FIND, FIND_BY_TAG, GET, GET_IN_CHILDREN, GET_IN_PARENT
+            FIND, FIND_WITH_TAG, GET, GET_IN_CHILDREN, GET_IN_PARENT
         };
 
         private static readonly string[] _validComponentAttributes =
@@ -36,7 +36,7 @@ namespace LurkingNinja.SourceGenerator
         };
 
         internal static bool HasFind(SyntaxNode node) => Helper.HasAttribute(node, FIND);
-        internal static bool HasFindByTag(SyntaxNode node) => Helper.HasAttribute(node, FIND_BY_TAG);
+        internal static bool HasFindByTag(SyntaxNode node) => Helper.HasAttribute(node, FIND_WITH_TAG);
         
         private static bool HasGenerateInitializers(SyntaxNode node) =>
             Helper.HasAttribute(node, GENERATE_INITIALIZERS);
@@ -60,7 +60,7 @@ namespace LurkingNinja.SourceGenerator
             Helper.GetAttributeParam(syntaxNode, FIND, "gameObjectName", compilation);
 
         internal static string GetFindByTagParam(SyntaxNode syntaxNode, Compilation compilation) =>
-            Helper.GetAttributeParam(syntaxNode, FIND_BY_TAG, "tagName", compilation);
+            Helper.GetAttributeParam(syntaxNode, FIND_WITH_TAG, "tagName", compilation);
 
         internal static bool HasAnyValidAttribute(SyntaxNode syntaxNode) =>
             _validBaseAttributes.Any(attribute => Helper.HasAttribute(syntaxNode, attribute));

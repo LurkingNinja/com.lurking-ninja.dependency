@@ -380,7 +380,6 @@ MonoBehaviour:
   - {fileID: 321977594}
   - {fileID: 1218343068}
   - {fileID: 1190698901}
-  getBoxCollider: {fileID: 0}
 --- !u!4 &950143590
 Transform:
   m_ObjectHideFlags: 0
