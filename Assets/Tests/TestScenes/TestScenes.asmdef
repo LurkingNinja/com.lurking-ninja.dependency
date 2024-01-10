@@ -1,6 +1,6 @@
 {
-    "name": "LurkingNinja.Dependency.Runtime",
-    "rootNamespace": "LurkingNinja.Dependency",
+    "name": "TestScenes",
+    "rootNamespace": "",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

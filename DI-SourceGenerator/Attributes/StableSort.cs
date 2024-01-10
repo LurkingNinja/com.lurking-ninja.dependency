@@ -3,8 +3,8 @@
 namespace LurkingNinja.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class GetInChildren : Attribute
+    public class StableSort : Attribute
     {
-        public GetInChildren() {}
+        public StableSort() {}
     }
 }

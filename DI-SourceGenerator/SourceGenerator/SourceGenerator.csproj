@@ -30,7 +30,7 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="copy bin\Release\netstandard2.0\SourceGenerator.dll ..\..\Packages\com.lurking-ninja.dependency\Editor\SourceGenerator.dll" />
+      <Exec Command="copy bin\Release\netstandard2.0\SourceGenerator.dll ..\..\Packages\com.lurking-ninja.dependency\SourceGenerator.dll" />
     </Target>
 
 </Project>

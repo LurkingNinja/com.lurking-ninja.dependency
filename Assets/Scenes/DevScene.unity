@@ -134,12 +134,12 @@ GameObject:
   - component: {fileID: 321977595}
   - component: {fileID: 321977596}
   m_Layer: 0
-  m_Name: ChildWithAudioSource (2)
+  m_Name: 3 ChildWithAudioSource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &321977595
 Transform:
   m_ObjectHideFlags: 0
@@ -375,8 +375,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d606265e642c1d043b36606a17bf2e6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  getInParent_Rigidbody: {fileID: 1270084522}
-  <getInParents_Colli1der>k__BackingField: []
+  get_BoxColliders:
+  - {fileID: 950143591}
+  - {fileID: 950143593}
+  <GetOnProperty_SphereCollider>k__BackingField: {fileID: 950143592}
+  getByTag_MainCamera: {fileID: 462300858}
+  getInChild_AudioSource: {fileID: 1218343070}
+  getInChildren_AudioSource:
+  - {fileID: 1218343070}
+  - {fileID: 1190698903}
+  - {fileID: 321977596}
 --- !u!4 &950143590
 Transform:
   m_ObjectHideFlags: 0
@@ -563,12 +571,12 @@ GameObject:
   - component: {fileID: 1190698902}
   - component: {fileID: 1190698903}
   m_Layer: 0
-  m_Name: ChildWithAudioSource (1)
+  m_Name: 2 ChildWithAudioSource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1190698902
 Transform:
   m_ObjectHideFlags: 0
@@ -692,12 +700,12 @@ GameObject:
   - component: {fileID: 1218343070}
   - component: {fileID: 1218343071}
   m_Layer: 0
-  m_Name: ChildWithAudioSource
+  m_Name: 1 ChildWithAudioSource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1218343069
 Transform:
   m_ObjectHideFlags: 0

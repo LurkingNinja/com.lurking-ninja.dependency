@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -14,7 +15,7 @@ namespace LurkingNinja.SourceGenerator
             var syntaxNodes = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: IsSyntaxTargetForGeneration,
-                    transform: Common.HasAnyAttribute)
+                    transform: Helper.HasAnyValidAttribute)
                 .Where(IsNotNull);
 
             IncrementalValueProvider<(Compilation, ImmutableArray<SyntaxNode>)> compilationAndNodes
@@ -25,172 +26,325 @@ namespace LurkingNinja.SourceGenerator
 
         private static void Execute(SourceProductionContext ctx, (Compilation, ImmutableArray<SyntaxNode>) results)
         {
-            var (compilation, listOfNodes) = results;
-            if (listOfNodes.IsDefaultOrEmpty) return;
-            
-            var className = Common.GetClassNameOf(listOfNodes[0]);
-            var cds = Common.GetClassOf(listOfNodes[0]);
+            var (compilation, listOfOriginalNodes) = results;
+            if (listOfOriginalNodes.IsDefaultOrEmpty) return;
 
-            if (!Common.IsPartial(cds)) return;
-            
-            var usingDirectives = Common.GetUsingDirectives(cds);
-            var isSealed = Common.GetIfSealed(cds);
-            var classAccessor = Common.GetAccessOfClass(cds);
-            var source = new StringBuilder();
-            var sourceForEditor = new StringBuilder();
-            var sourceForPlay = new StringBuilder();
-            
-            /*BeginClass*/source.AppendLine($"{classAccessor} partial {isSealed}class {className} {{");
-            
-            sourceForEditor.AppendLine("#if UNITY_EDITOR");
-            sourceForEditor.AppendLine("\tprivate void InjectInEditor() {");
-
-            sourceForPlay.AppendLine("\tprivate void InjectInPlay() {");
-
-            var numberOfEntriesEditor = 0;
-            var numberOfEntriesPlay = 0;
-            
-            var theLine = new StringBuilder();
-            foreach (var syntaxNode in listOfNodes)
+            var listOfNodes = new Dictionary<string, List<SyntaxNode>>();
+            foreach (var node in listOfOriginalNodes)
             {
-                if (!Common.TryGetFieldOrPropertyData(syntaxNode, out var type, out var fieldName)) continue;
-                
-                var skipNullCheck = Common.HasAttribute(syntaxNode, Common.SKIP_NULL_CHECK_ATTRIBUTE);
-                var ignoreSelf = Common.HasAttribute(syntaxNode, Common.IGNORE_SELF_ATTRIBUTE);
-                var injectInPlay = Common.HasAttribute(syntaxNode, Common.INJECT_IN_PLAY_ATTRIBUTE);
-                
-                var isArray =  Common.IsArray(syntaxNode);
-                var isCollection = Common.IsCollection(syntaxNode, "Collection");
-                var isList = Common.IsCollection(syntaxNode);
-                var isCompoundType = isArray || isList || isCollection;
-                
-                if (isArray) type = type
-                        .Replace("[]", string.Empty);
-                if (isList) type = type
-                        .Replace("List<",  string.Empty)
-                        .Replace(">", string.Empty);
-                if (isCollection) type = type
-                        .Replace("Collection<",  string.Empty)
-                        .Replace(">", string.Empty);
-                sourceForEditor.Append("\t\t");
-
-                theLine.Clear();
-                /* Get */if (Common.HasAttribute(syntaxNode, Common.GET_ATTRIBUTE))
-                {
-                    var s = Common.Toggle(isCompoundType, "s");
-                    var oneLine = $"{fieldName} = GetComponent{s}<{type}>();";
-                    var orEmpty = Common.Toggle(isCollection, $" || {fieldName}.Length == 0");
-                    oneLine = Common.Toggle(
-                        skipNullCheck, oneLine, $"if({fieldName} == null{orEmpty}) {oneLine}");
-                    
-                    theLine.AppendLine(oneLine);
-                }
-                /* GetByName */else if (Common.HasAttribute(syntaxNode, Common.GET_BY_NAME_ATTRIBUTE))
-                {
-                    var gameObjectName = Common.GetAttributeParam(
-                        syntaxNode, Common.GET_BY_NAME_ATTRIBUTE, "gameObjectName", compilation);
-                    var s = Common.Toggle(isCompoundType, "s");
-                    
-                    var oneLine = $"{fieldName} = GameObject.Find(\"{gameObjectName}\").GetComponent{s}<{type}>();";
-                    oneLine = Common.Toggle(skipNullCheck, oneLine, $"if({fieldName} == null) {oneLine}");
-                    
-                    theLine.AppendLine(oneLine);
-                }
-                /* GetByTag */else if (Common.HasAttribute(syntaxNode, Common.GET_BY_TAG_ATTRIBUTE))
-                {
-                    var tagName = Common.GetAttributeParam(
-                        syntaxNode, Common.GET_BY_TAG_ATTRIBUTE, "tagName", compilation);
-                    var s = Common.Toggle(isCompoundType, "s");
-                    
-                    var oneLine = $"{fieldName} = GameObject.FindWithTag(\"{tagName}\").GetComponent{s}<{type}>();";
-                    oneLine = Common.Toggle(skipNullCheck, oneLine, $"if({fieldName} == null) {oneLine}");
-                    
-                    theLine.AppendLine(oneLine);                    
-                }
-                /* GetInAssets */else if (Common.HasAttribute(syntaxNode, Common.GET_IN_ASSETS_ATTRIBUTE))
-                {
-                    var assetPath = Common.GetAttributeParam(
-                        syntaxNode, Common.GET_IN_ASSETS_ATTRIBUTE, "assetSearchPath", compilation);
-
-                    // Can't inject AssetDatabase in Play.
-                    injectInPlay = false;
-                    
-                    theLine.Append("{");
-                    if (!skipNullCheck) theLine.Append($"if({fieldName} == null) {{ ");
-                    theLine.Append($" var guids = UnityEditor.AssetDatabase.FindAssets(\"t:{type} {assetPath}\"); ");
-                    theLine.Append($"if (guids.Length  > 0) {{ {fieldName} = UnityEditor.AssetDatabase.LoadAssetAtPath<{type}>(UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0])); }} ");
-                    if (!skipNullCheck) theLine.AppendLine("}");
-                    theLine.AppendLine("}");
-                }
-                /* GetInChildren */else if (Common.HasAttribute(syntaxNode, Common.GET_IN_CHILDREN_ATTRIBUTE))
-                {
-                    var includeInactive = Common.HasAttribute(syntaxNode,
-                        Common.INCLUDE_INACTIVE_ATTRIBUTE) ? "true" : string.Empty;
-                    var s = Common.Toggle(isCompoundType, "s");
-
-                    string oneLine;
-                    if (isList || isCollection || ignoreSelf)
-                    {
-                        var lineSb = new StringBuilder();
-                        lineSb.AppendLine($"{{var tempList = new System.Collections.Generic.List<{type}>(); ");
-                        lineSb.AppendLine($"foreach(var item  in GetComponent{s}InChildren<{type}>({includeInactive})) {{");
-                        lineSb.AppendLine("if (item.gameObject != gameObject) {tempList.Add(item);}}");
-                        lineSb.AppendLine(isArray ? $"{fieldName}=tempList.ToArray();}} " : isList ? $"{fieldName}=tempList;}}" : $"{fieldName}=new Collection<{type}>(tempList);}}");
-                        oneLine = lineSb.ToString();  
-                    } else
-                    {
-                        oneLine = $"{fieldName} = GetComponent{s}InChildren<{type}>({includeInactive});";
-                        oneLine = Common.Toggle(skipNullCheck, oneLine, $"if({fieldName} == null) {oneLine}");
-                    }
-                    
-                    theLine.AppendLine(oneLine);
-                }
-                /* GetInParent */else if (Common.HasAttribute(syntaxNode, Common.GET_IN_PARENT_ATTRIBUTE))
-                {
-                    var includeInactive = Common.HasAttribute(syntaxNode,
-                        Common.INCLUDE_INACTIVE_ATTRIBUTE) ? "true" : string.Empty;
-                    var s = Common.Toggle(isCompoundType, "s");
-
-                    string oneLine;
-                    if (isList || isCollection || ignoreSelf)
-                    {
-                        var lineSb = new StringBuilder();
-                        lineSb.AppendLine($"{{var tempList = new System.Collections.Generic.List<{type}>(); ");
-                        lineSb.AppendLine($"foreach(var item  in GetComponent{s}InParent<{type}>({includeInactive})) {{");
-                        lineSb.AppendLine("if (item.gameObject != gameObject) {tempList.Add(item);}}");
-                        lineSb.AppendLine(isArray ? $"{fieldName}=tempList.ToArray();}} " : isList ? $"{fieldName}=tempList;}}" : $"{fieldName}=new Collection<{type}>(tempList);}}");
-                        oneLine = lineSb.ToString();  
-                    } else
-                    {
-                        oneLine = $"{fieldName} = GetComponent{s}InParent<{type}>({includeInactive});";
-                        oneLine = Common.Toggle(skipNullCheck, oneLine, $"if({fieldName} == null) {oneLine}");
-                    }
-                    
-                    theLine.AppendLine(oneLine);
-                }
-
-                if (injectInPlay)
-                {
-                    sourceForPlay.AppendLine(theLine.ToString());
-                    numberOfEntriesPlay++;
-                    continue;
-                }
-                
-                sourceForEditor.AppendLine(theLine.ToString());
-                numberOfEntriesEditor++;
+                var className = Helper.GetClassNameOf(node);
+                if (!listOfNodes.ContainsKey(className))
+                    listOfNodes.Add(className, new List<SyntaxNode>());
+                listOfNodes[className].Add(node);
             }
 
-            sourceForEditor.AppendLine("\t}");
-            /*EndInjectInEditorMethod*/sourceForEditor.AppendLine("#endif");
-            /*EndInjectInPlayMethod*/sourceForPlay.AppendLine("\t}");
-            
-            if (numberOfEntriesEditor > 0)
-                source.AppendLine(sourceForEditor.ToString());
-            if (numberOfEntriesPlay > 0)
-                source.AppendLine(sourceForPlay.ToString());
-            /*EndClass*/source.AppendLine("\n}");
+            foreach (var nodeKeyValue in listOfNodes)
+            {
+                var className = nodeKeyValue.Key;
+                var nodes = nodeKeyValue.Value;
+                
+                var cds = Helper.GetClassOf(nodes[0]);
+                if (!Helper.IsPartial(cds)) return;
 
-            Common.AddSourceNs(ctx, className, usingDirectives, cds, source.ToString(), true);
+                var sealedOrEmpty = Helper.GetIfSealed(cds);
+                var usingDirectives = Helper.GetUsingDirectives(cds);
+                var classAccessor = Helper.GetAccessOfClass(cds);
+                var doTestHelpers = Attribute.HasTestHelpers(cds);
+
+                var numberOfEntriesEditor = 0;
+                var editorSource = new StringBuilder();
+                var numberOfEntriesRuntime = 0;
+                var runtimeSource = new StringBuilder();
+
+                var oneLine = new StringBuilder();
+                var testLines = new StringBuilder();
+                foreach (var syntaxNode in nodes)
+                {
+                    if (!Helper.TryGetFieldOrPropertyData(syntaxNode, out var type, out var fieldName)
+                        || !Attribute.HasAnyValidAttribute(syntaxNode)) continue;
+
+                    var ignoreSelf = Attribute.HasIgnoreSelf(syntaxNode);
+                    var injectInPlay = Attribute.HasInjectInRuntime(syntaxNode);
+                    var injectInEditor = Attribute.HasInjectInEditor(syntaxNode) || !injectInPlay;
+
+                    var isArray = Helper.IsArray(syntaxNode);
+                    var isList = Helper.IsCollection(syntaxNode);
+                    var isCollection = isArray || isList;
+
+                    var baseType = Helper.GetBaseType(type);
+                    var isGameObjectBase = baseType == "GameObject";
+
+                    oneLine.Clear();
+
+                    var leftHandSide =
+                        Helper.GetLeftHandSide(!Attribute.HasSkipNullCheck(syntaxNode), fieldName, isArray, isList);
+
+                    var hasFind = Attribute.HasFind(syntaxNode);
+                    var hasGet = Attribute.HasGet(syntaxNode);
+                    var hasFindWithTag = Attribute.HasFindWithTag(syntaxNode);
+                    var hasInChildren = Attribute.HasGetInChildren(syntaxNode);
+                    var hasInParent = Attribute.HasGetInParent(syntaxNode);
+                    
+                    if (!isCollection && isGameObjectBase && hasFind)
+                    {
+                        // Attribute: [Find("Main Camera")] -> Object.FindObjectsByType<GameObject>.First
+                        // Type: GameObject
+                        // Available tag-attributes: IncludeInactive, StableSort, IgnoreSelf
+
+                        var findParam = Attribute.GetFindParam(syntaxNode, compilation);
+                        var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
+                            "Include", "Exclude");
+                        var stableSort = Helper.Toggle(Attribute.HasStableSort(syntaxNode),
+                            "InstanceID", "None");
+                        var doIgnoreSelf = Helper.Toggle(ignoreSelf, " go != gameObject &&");
+                        
+                        oneLine.Append(leftHandSide).Append("FindObjectsByType<GameObject>(FindObjectsInactive.")
+                            .Append(strIncludeInactive).Append(", FindObjectsSortMode.").Append(stableSort)
+                            .Append(").First(go =>").Append(doIgnoreSelf).Append(@" go.name == """)
+                            .Append(findParam).Append(@""")")
+                            .AppendLine(";");
+
+                    } else if (isCollection && isGameObjectBase && hasFind)
+                    {
+                        // Attribute: [Find("ChildWithAudioSource")] -> Object.FindObjectsByType<GameObject>
+                        // Type: GameObject[]
+                        // Available tag-attributes: IncludeInactive, StableSort, IgnoreSelf
+                        
+                        var findParam = Attribute.GetFindParam(syntaxNode, compilation);
+                        var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
+                            "Include", "Exclude");
+                        var stableSort = Helper.Toggle(Attribute.HasStableSort(syntaxNode),
+                            "InstanceID", "None");
+                        var doIgnoreSelf = Helper.Toggle(ignoreSelf, " go != gameObject &&");
+                        var doArray = Helper.Toggle(isArray, ".ToArray()", ".ToList()");
+
+                        oneLine.Append(leftHandSide).Append("FindObjectsByType<GameObject>(")
+                            .Append("FindObjectsInactive.").Append(strIncludeInactive)
+                            .Append(", FindObjectsSortMode.").Append(stableSort)
+                            .Append(").Where(go =>").Append(doIgnoreSelf).Append(@" go.name == """)
+                            .Append(findParam).Append(@""")").Append(doArray)
+                            .AppendLine(";");
+                        
+                    } else if (!isCollection && !isGameObjectBase && hasGet && !hasFindWithTag)
+                    {
+                        //  Attribute: [Get] -> GetComponent<BaseType>()
+                        // Type: Component
+
+                        oneLine.Append(leftHandSide).Append("GetComponent<").Append(baseType).Append(">()")
+                            .AppendLine(";");
+
+                    } else if (isCollection && !isGameObjectBase && hasGet && !hasFind && !hasFindWithTag)
+                    {
+                        //  Attribute: [Get] -> GetComponents<BaseType>()
+                        // Type: Component[]
+                        
+                        oneLine.Append(leftHandSide).Append("GetComponents<").Append(baseType).Append(">()")
+                            .AppendLine(";");
+                        
+                    } else if (!isCollection && !isGameObjectBase && hasFind && hasGet)
+                    {
+                        // Attribute: [Find("name")][Get] ->  Object.FindObjectsByType<GameObject>.foreach().GetComponent<BaseType).First()
+                        // Type: Component
+                        // Available tag-attributes: IncludeInactive, StableSort, IgnoreSelf
+                        
+                        var findParam = Attribute.GetFindParam(syntaxNode, compilation);
+                        var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
+                            "Include", "Exclude");
+                        var stableSort = Helper.Toggle(Attribute.HasStableSort(syntaxNode),
+                            "InstanceID", "None");
+                        var doIgnoreSelf = Helper.Toggle(ignoreSelf, " go != gameObject && "); 
+
+                        oneLine
+                            .Append("{")
+                                .Append(baseType).AppendLine(" res = null;")
+                                .Append("foreach(var go in FindObjectsByType<GameObject>(")
+                                .Append("FindObjectsInactive.").Append(strIncludeInactive)
+                                .Append(", FindObjectsSortMode.").Append(stableSort).AppendLine(")) {")
+                                    .Append("if (").Append(doIgnoreSelf)
+                                    .Append("go.name == \"").Append(findParam).AppendLine("\") {")
+                                    .Append("if (go.TryGetComponent<").Append(baseType).AppendLine(">(out res)) break;")
+                                    .AppendLine("}}")
+                                .Append(leftHandSide).Append("res")
+                                .AppendLine(";")
+                            .AppendLine("}");
+
+                    } else if (isCollection && !isGameObjectBase && hasFind && hasGet)
+                    {
+                        // Attribute: [Find("name")][Get] ->   Object.FindObjectsByType<GameObject>.foreach().GetComponents<BaseType).All()
+                        // Type: Component[]
+                        // Available tag-attributes: IncludeInactive, StableSort, IgnoreSelf
+
+                        var findParam = Attribute.GetFindParam(syntaxNode, compilation);
+                        var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
+                            "Include", "Exclude");
+                        var stableSort = Helper.Toggle(Attribute.HasStableSort(syntaxNode),
+                            "InstanceID", "None");
+                        var doIgnoreSelf = Helper.Toggle(ignoreSelf, " go != gameObject && ");
+                        var doArray = Helper.Toggle(isArray, ".ToArray()");
+
+                        oneLine
+                            .Append("{")
+                                .Append("var res = new List<").Append(baseType).AppendLine(">();")
+                                .Append("foreach(var go in FindObjectsByType<GameObject>(")
+                                .Append("FindObjectsInactive.").Append(strIncludeInactive)
+                                .Append(", FindObjectsSortMode.").Append(stableSort).AppendLine(")) {")
+                                    .Append("if (").Append(doIgnoreSelf)
+                                    .Append("go.name == \"").Append(findParam).AppendLine("\") {")
+                                    .Append("res.AddRange(go.GetComponents<").Append(baseType).AppendLine(">());")
+                                    .AppendLine("}}")
+                                .Append(leftHandSide).Append("res").Append(doArray).AppendLine(";")
+                            .AppendLine("}");
+                        
+                    } else if (!isCollection && isGameObjectBase && hasFindWithTag)
+                    {
+                        // Attribute: [FindWithTag("tag")] -> GameObject.FindWithTag(tagName)
+                        // Type: GameObject
+                        
+                        var findParam = Attribute.GetFindWithTagParam(syntaxNode, compilation);
+
+                        oneLine
+                            .Append(leftHandSide)
+                            .Append("GameObject.FindWithTag(\"").Append(findParam).AppendLine("\");");
+                        
+                    } else if (isCollection && isGameObjectBase && hasFindWithTag)
+                    {
+                        // Attribute: [FindWithTag("tag")] -> GameObject.FindGameObjectsWithTag(tagName)
+                        // Type: GameObject[]
+                        
+                        var findParam = Attribute.GetFindWithTagParam(syntaxNode, compilation);
+                        
+                        oneLine
+                            .Append(leftHandSide)
+                            .Append("GameObject.FindGameObjectsWithTag(\"").Append(findParam).AppendLine("\");");
+                        
+                    } else if (!isCollection && !isGameObjectBase && hasFindWithTag)
+                    {
+                        // Attribute: [FindWithTag("tag")][Get] -> GameObject.FindGameObjectsWithTag(tagName).each().GetComponent<BaseType>().First()
+                        // Type: Component
+
+                        var findParam = Attribute.GetFindWithTagParam(syntaxNode, compilation);
+
+                        oneLine
+                            .Append("{")
+                                .Append(baseType).AppendLine(" res = null; ")
+                                .Append("foreach (var go in GameObject.FindGameObjectsWithTag(\"")
+                                    .Append(findParam).Append("\")) { if (go.TryGetComponent<")
+                                    .Append(baseType).AppendLine(">(out res)) break; }")
+                                .Append(leftHandSide).Append(" res").AppendLine(";")
+                            .AppendLine("}");
+
+                    } else if (isCollection && !isGameObjectBase && hasFindWithTag && hasGet)
+                    {
+                        // Attribute: [FindWithTag("tag")][Get] -> GameObject.FindGameObjectsWithTag(tagName).each().GetComponents<BaseType>().All()
+                        // Type: Component[]
+
+                        var findParam = Attribute.GetFindWithTagParam(syntaxNode, compilation);
+                        var doArray = Helper.Toggle(isArray, ".ToArray()");
+
+                        oneLine
+                            .Append("{")
+                                .Append("var res = new List<").Append(baseType).AppendLine(">();")
+                                .Append("foreach (var go in GameObject.FindGameObjectsWithTag(\"")
+                                    .Append(findParam).Append("\")) { res.AddRange(go.GetComponents<")
+                                    .Append(baseType).AppendLine(">()); }")
+                                .Append(leftHandSide).Append(" res").Append(doArray).AppendLine(";")
+                            .AppendLine("}");
+
+                    } else if (!isCollection && !isGameObjectBase && hasInChildren)
+                    {
+                        // Attribute: [GetInChildren] -> GetComponentsInChildren<BaseType>()
+                        // Type: Component
+                        // Available tag-attributes: IncludeInactive, IgnoreSelf
+                        
+                        var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
+                            "true", "false");
+                        var strIgnoreSelf = Helper.Toggle(ignoreSelf,
+                            "comp  => comp.gameObject != gameObject");
+
+                        oneLine.Append(leftHandSide).Append("GetComponentsInChildren<")
+                            .Append(baseType).Append(">(").Append(strIncludeInactive).Append(").First(");
+                        oneLine.Append(strIgnoreSelf).AppendLine(");");
+
+                    } else if (isCollection && !isGameObjectBase && hasInChildren)
+                    {
+                        // Attribute: [GetInChildren] -> GetComponentsInChildren<BaseType>()
+                        // Type: Component[]
+                        // Available tag-attributes: IncludeInactive, IgnoreSelf
+                        
+                        var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
+                            "true", "false");
+                        var strIgnoreSelf = Helper.Toggle(ignoreSelf,
+                            ".Where(comp  => comp.gameObject != gameObject)");
+                        var doArray = Helper.Toggle(isArray, ".ToArray()", ".ToList()");
+                        
+                        oneLine.Append(leftHandSide).Append("GetComponentsInChildren<")
+                            .Append(baseType).Append(">(").Append(strIncludeInactive).Append(")");
+                        oneLine.Append(strIgnoreSelf).Append(doArray).AppendLine(";");
+
+                    } else if (!isCollection && !isGameObjectBase && hasInParent)
+                    {
+                        // Attribute: [GetInParent] -> GetComponentsInParent<BaseType>()
+                        // Type: Component
+                        // Available tag-attributes: IncludeInactive, IgnoreSelf
+                        
+                        var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
+                            "true", "false");
+                        var strIgnoreSelf = Helper.Toggle(ignoreSelf,
+                            "comp  => comp.gameObject != gameObject");
+                        // First(comp => comp.gameObject != gameObject);
+                        oneLine.Append(leftHandSide).Append("GetComponentsInParent<")
+                            .Append(baseType).Append(">(").Append(strIncludeInactive).Append(").First(");
+                        oneLine.Append(strIgnoreSelf).AppendLine(");");
+
+                    }
+                    else if (isCollection && !isGameObjectBase && hasInParent)
+                    {
+                        // Attribute: [GetInParent] -> GetComponentsInParent<BaseType>()
+                        // Type: Component[]
+                        // Available tag-attributes: IncludeInactive, IgnoreSelf
+                        
+                        var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
+                            "true", "false");
+                        var strIgnoreSelf = Helper.Toggle(ignoreSelf,
+                            ".Where(comp  => comp.gameObject != gameObject)");
+                        var doArray = Helper.Toggle(isArray, ".ToArray()", ".ToList()");
+                        
+                        oneLine.Append(leftHandSide).Append("GetComponentsInParent<")
+                            .Append(baseType).Append(">(").Append(strIncludeInactive).Append(")");
+                        oneLine.Append(strIgnoreSelf).Append(doArray).AppendLine(";");
+
+                    } else continue;
+
+                    if (doTestHelpers) testLines
+                        .Append("public ").Append(type).Append(" Get").Append(fieldName)
+                        .Append(" { get => ").Append(fieldName)
+                        .Append("; set => ").Append(fieldName).AppendLine(" = value; }");
+                    
+                    if (injectInEditor)
+                    {
+                        editorSource.AppendLine(oneLine.ToString());
+                        numberOfEntriesEditor++;
+                        continue;
+                    }
+
+                    runtimeSource.AppendLine(oneLine.ToString());
+                    numberOfEntriesRuntime++;
+                }
+
+                var sourceBuilder = new StringBuilder();
+                if (numberOfEntriesEditor > 0)
+                    sourceBuilder.AppendLine(Helper.InEditorResolve(editorSource.ToString(), doTestHelpers));
+                if (numberOfEntriesRuntime > 0)
+                    sourceBuilder.AppendLine(Helper.InRuntimeResolve(runtimeSource.ToString(), doTestHelpers));
+     
+                if (Attribute.HasGenerateOnValidate(cds)) sourceBuilder.AppendLine(Helper.ON_VALIDATE_TEMPLATE);
+                if (Attribute.HasGenerateAwake(cds)) sourceBuilder.AppendLine(Helper.AWAKE_TEMPLATE);
+
+                if (doTestHelpers) sourceBuilder.AppendLine(testLines.ToString());
+                
+                Helper.AddSourceNs(ctx, className, usingDirectives, cds, Helper.ClassTemplateResolve(
+                    classAccessor, sealedOrEmpty, className, sourceBuilder.ToString()));
+            }
         }
 
         private static bool IsNotNull(SyntaxNode syntaxNode) => !(syntaxNode is null);

@@ -3,8 +3,8 @@
 namespace LurkingNinja.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class GetByTag : Attribute
+    public class IncludeInactive : Attribute
     {
-        public GetByTag(string tag) {}
+        public IncludeInactive() {}
     }
 }
