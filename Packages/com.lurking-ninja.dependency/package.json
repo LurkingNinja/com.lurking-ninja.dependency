@@ -2,7 +2,7 @@
   "name": "com.lurking-ninja.dependency",
   "description": "Simplified dependency Injection for Unity utilizing SoourceGeneration making it as performant as possible.",
   "displayName": "Dependency Injection",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "unity": "2021.3",
   "documentationUrl": "https://github.com/LurkingNinja/com.lurking-ninja.dependency#dependency-injection",
   "changelogUrl": "https://github.com/LurkingNinja/com.lurking-ninja.dependency/blob/main/CHANGELOG.md",

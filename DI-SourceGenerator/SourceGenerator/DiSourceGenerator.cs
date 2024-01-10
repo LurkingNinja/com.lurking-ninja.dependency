@@ -260,7 +260,7 @@ namespace LurkingNinja.SourceGenerator
                             "true", "false");
                         var strIgnoreSelf = Helper.Toggle(ignoreSelf,
                             "comp  => comp.gameObject != gameObject");
-                        // First(comp => comp.gameObject != gameObject);
+
                         oneLine.Append(leftHandSide).Append("GetComponentsInChildren<")
                             .Append(baseType).Append(">(").Append(strIncludeInactive).Append(").First(");
                         oneLine.Append(strIgnoreSelf).AppendLine(");");
