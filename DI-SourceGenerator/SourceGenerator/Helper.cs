@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -18,7 +19,12 @@ namespace LurkingNinja.SourceGenerator
          * {2} class definition
          * {3} using directives
          */
-        private const string FILE_TEMPLATE = @"{3}
+        private const string FILE_TEMPLATE = @"#pragma warning disable CS0105 // multiple using directive warning
+using System.Linq;
+using System.Collections.Generic;
+{3}
+#pragma warning restore CS0105 // multiple using directive warning
+
 {0}
     {2}
 {1}";
@@ -53,25 +59,30 @@ namespace LurkingNinja.SourceGenerator
 
         /*
          * {0} source
+         * {1} accessor -  private, in tests: public
          */
         private const string INITIALIZE_EDITOR_TEMPLATE = @"#if UNITY_EDITOR
-private void InitializeInEditor() {{
+{1} void InitializeInEditor() {{
     {0}
 }}
 #endif";
 
-        internal static string InEditorResolve(string methodSource) =>
-            string.Format(INITIALIZE_EDITOR_TEMPLATE, methodSource);
+        internal static string InEditorResolve(string methodSource, bool isPublic = false) =>
+            string.Format(INITIALIZE_EDITOR_TEMPLATE,
+                /*{0}*/methodSource,
+                /*{1}*/Toggle(isPublic, "public", "private"));
         
         /*
          * {0} source
          */
-        private const string INITIALIZE_RUNTIME_TEMPLATE = @"private void InitializeInRuntime() {{
-{0}
+        private const string INITIALIZE_RUNTIME_TEMPLATE = @"{1} void InitializeInRuntime() {{
+    {0}
 }}";
 
-        internal static string InRuntimeResolve(string methodSource) =>
-            string.Format(INITIALIZE_RUNTIME_TEMPLATE, methodSource);
+        internal static string InRuntimeResolve(string methodSource, bool isPublic = false) =>
+            string.Format(INITIALIZE_RUNTIME_TEMPLATE,
+                /*{0}*/methodSource,
+                /*{1}*/Toggle(isPublic, "public", "private"));
 
         internal const string AWAKE_TEMPLATE = @"private void private void Awake() => InitializeInRuntime();";
 
@@ -187,8 +198,10 @@ private void OnValidate() => InitializeInEditor();
 
         internal static string GetAttributeParam(SyntaxNode syntaxNode, string attribute, string parameter, Compilation comp)
         {
-            if (syntaxNode?.Parent == null) return null;
-            var semanticModel = comp?.GetSemanticModel(syntaxNode.SyntaxTree, true);
+            var parentSyntaxTree = syntaxNode.Parent?.SyntaxTree;
+            if (parentSyntaxTree is null) return string.Empty;
+            
+            var semanticModel = comp?.GetSemanticModel(parentSyntaxTree, true);
             ISymbol symbol;
             switch (syntaxNode)
             {
@@ -208,15 +221,19 @@ private void OnValidate() => InitializeInEditor();
             {
                 if (attributeData.AttributeClass is null
                     || !attributeData.AttributeClass.Name.Equals(attribute)) continue;
-                if (!attributeData.ConstructorArguments.IsDefaultOrEmpty)
-                    return attributeData.ConstructorArguments[0].Value?.ToString();
-                if (!attributeData.NamedArguments.IsDefaultOrEmpty) return null;
+                if (attributeData.ConstructorArguments.Length > 0)
+                    return attributeData.ConstructorArguments.First().Value?.ToString();
+                    
+                if (attributeData.NamedArguments.Length < 1) return null;
 
+                parameter = parameter.Trim();
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Key.Trim().Equals(parameter.Trim())) return namedArgument.Value.ToString();
+                    if (namedArgument.Key.Trim() == parameter)
+                        return namedArgument.Value.ToString();
                 }
             }
+
             return null;
         }
         
@@ -285,6 +302,24 @@ private void OnValidate() => InitializeInEditor();
             usingDirectives.Add("using UnityEngine;");
 
             return string.Join("\n", usingDirectives);
+        }
+
+        internal static string GetLeftHandSide(
+            bool hasSkipNullCheck, string fieldName, bool isArray, bool isList)
+        {
+            var oneLine = new StringBuilder();
+            if (!hasSkipNullCheck)
+            {
+                oneLine.Append("if (").Append(fieldName).Append(" == null");
+                if (isArray) oneLine
+                    .Append(" || ").Append(fieldName).Append(".Length == 0");
+                else if (isList) oneLine
+                    .Append(" || ").Append(fieldName).Append(".Count == 0");
+                oneLine.Append(") ");
+            }
+            oneLine.Append(fieldName).Append(" = ");
+            
+            return oneLine.ToString();
         }
 
         internal static void Log(string text) =>

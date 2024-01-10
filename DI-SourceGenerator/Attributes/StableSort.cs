@@ -3,8 +3,8 @@
 namespace LurkingNinja.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class InjectInRuntime : Attribute
+    public class StableSort : Attribute
     {
-        public InjectInRuntime() {}
+        public StableSort() {}
     }
 }

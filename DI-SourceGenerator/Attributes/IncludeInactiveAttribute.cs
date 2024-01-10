@@ -5,6 +5,6 @@ namespace LurkingNinja.Attributes
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class IncludeInactive : Attribute
     {
-        public IncludeInactive(string gameObjectName) {}
+        public IncludeInactive() {}
     }
 }

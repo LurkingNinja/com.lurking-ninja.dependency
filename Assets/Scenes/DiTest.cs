@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
 using LurkingNinja.Attributes;
 using UnityEngine;
 
 namespace DoTest
 {
-    [GenerateOnValidate]
+    // [GenerateOnValidate]
     public partial class DiTest : MonoBehaviour
     {
         // // Receiver can be Property or plain field.
@@ -34,14 +35,14 @@ namespace DoTest
         // Find the first GameObject
         // If the TYPE is GameObject you can't have [Get] here
         // GameObject.Find(gameObjectName).First();
-        [Find("Main Camera")][SerializeField]
-        private GameObject oneGameObject;
+        // [Find("Main Camera")][SerializeField]
+        // private GameObject oneGameObject;
         // Find many GameObjects
         // If the TYPE is GameObject you can't have [Get] here
         // GameObject.Find(gameObjectName).All();
         // Can use T[]. List<T>
-        [Find("ChildWithAudioSource")][SerializeField]
-        private GameObject[] manyGameObjects;
+        // [Find("ChildWithAudioSource")][SerializeField]
+        // private GameObject[] manyGameObjects;
         // // Find one Component<BoxCollider> on the current GO.
         // // GetComponent<BoxCollider>();
         // [Get][SerializeField]
@@ -98,10 +99,8 @@ namespace DoTest
         // [GetInChildren][SerializeField]
         // private BoxCollider[] getManyBoxCollidersOnManyParents;
 
-    //     private void Awake()
-    //     {
-    //         manyGameObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None)
-    //             .Where(go => go.name == "ChildWithAudioSource").ToArray();
-    //     }
+        private void Awake()
+        {
+        }
     }
 }

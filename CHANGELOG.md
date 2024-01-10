@@ -1,13 +1,23 @@
 # Changelog
 All notable changes to this project will be documented in this file.
+## [0.0.3] - 2024-01-09
+### Added
+- DiTestHelpers 
+- StableSort
+- Tests added
+### TODO
+- Reintroduce asset referencing (GetInAssets)
+- Develop filtering
+- Update documentation
 ## [0.0.2] - 2024-01-08
 ### Added
 - Find
 - FindWithTag
-- GenerateOnValidate
 - GenerateAwake
-- InjectInRuntime
+- GenerateInitializers
+- GenerateOnValidate
 - InjectInEditor
+- InjectInRuntime
 ### Removed
 - GetByName - use the combination of Find and Get
 - GetByTag - use the combination of FindWithTag and Get
