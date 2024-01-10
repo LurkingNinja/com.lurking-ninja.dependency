@@ -21,6 +21,12 @@ namespace Tests.TestScenes
 
         [Get][SerializeField]
         private BoxCollider[] getManyBoxColliders;
+
+        [Add][SerializeField]
+        private HingeJoint noHingeJointUntilAdded;
+
+        [Add][SerializeField]
+        private SphereCollider[] noSphereCollidersUntilAdded;
         
         [Find("TestChild")][Get][SerializeField]
         private BoxCollider findFirstBoxColliderOnManyGameObject;

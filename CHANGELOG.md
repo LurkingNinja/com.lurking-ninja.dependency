@@ -1,12 +1,22 @@
 # Changelog
 All notable changes to this project will be documented in this file.
+
+## [0.0.5] - 2024-01-10
+- [Add] attribute
+### TODO
+- Reintroduce asset referencing (GetInAssets)
+- Develop filtering
+- Add C# class (```[Depends]``` - ```[Provides]```) dependency injection
+- Check if we can have a [Require] attribute for entries (throwing warning or error in console).
+
 ## [0.0.4] - 2024-01-09 - Release
 ### Changed
 - Documentation updated
 ### TODO
 - Reintroduce asset referencing (GetInAssets)
 - Develop filtering
-- - Add C# class (```[Depends]``` - ```[Provides]```) dependency injection
+- Add C# class (```[Depends]``` - ```[Provides]```) dependency injection
+
 ## [0.0.3] - 2024-01-09
 ### Added
 - DiTestHelpers 
@@ -16,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - Reintroduce asset referencing (GetInAssets)
 - Develop filtering
 - Update documentation
+
 ## [0.0.2] - 2024-01-08
 ### Added
 - Find
@@ -37,6 +48,7 @@ All notable changes to this project will be documented in this file.
 - Add bool SortByInstanceId optional parameter to Find
 - Update documentation
 - Move test over to public
+
 ## [0.0.1] - 2024-01-03 - Release
 ### Added
 - Get attribute

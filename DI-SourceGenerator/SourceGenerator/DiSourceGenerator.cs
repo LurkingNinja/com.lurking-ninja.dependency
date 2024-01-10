@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -81,6 +82,7 @@ namespace LurkingNinja.SourceGenerator
 
                     var hasFind = Attribute.HasFind(syntaxNode);
                     var hasGet = Attribute.HasGet(syntaxNode);
+                    var hasAdd = Attribute.HasAdd(syntaxNode);
                     var hasFindWithTag = Attribute.HasFindWithTag(syntaxNode);
                     var hasInChildren = Attribute.HasGetInChildren(syntaxNode);
                     var hasInParent = Attribute.HasGetInParent(syntaxNode);
@@ -130,22 +132,32 @@ namespace LurkingNinja.SourceGenerator
                         //  Attribute: [Get] -> GetComponent<BaseType>()
                         // Type: Component
 
-                        oneLine.Append(leftHandSide).Append("GetComponent<").Append(baseType).Append(">()")
-                            .AppendLine(";");
+                        oneLine.Append("{ var temp = ").Append("GetComponent<").Append(baseType).AppendLine(">();");
+                        if (hasAdd) oneLine
+                            .Append("if (temp == null) temp = gameObject.AddComponent<").Append(baseType).AppendLine(">();");
+                        oneLine.Append(leftHandSide).Append("temp").AppendLine("; }");
 
                     } else if (isCollection && !isGameObjectBase && hasGet && !hasFind && !hasFindWithTag)
                     {
-                        //  Attribute: [Get] -> GetComponents<BaseType>()
+                        // Attribute: [Get] -> GetComponents<BaseType>()
                         // Type: Component[]
+                        // // [Add] support
                         
-                        oneLine.Append(leftHandSide).Append("GetComponents<").Append(baseType).Append(">()")
-                            .AppendLine(";");
+                        var doArray = Helper.Toggle(isArray, ".ToArray()");
+                        
+                        oneLine.Append("{ List<").Append(baseType).Append("> temp = new(").Append("GetComponents<")
+                            .Append(baseType).AppendLine(">());");
+                        if (hasAdd) oneLine
+                            .Append("if (temp == null || temp.Count == 0)")
+                            .Append(" temp.Add(gameObject.AddComponent<").Append(baseType).AppendLine(">());");
+                        oneLine.Append(leftHandSide).Append("temp").Append(doArray).AppendLine("; }");
                         
                     } else if (!isCollection && !isGameObjectBase && hasFind && hasGet)
                     {
                         // Attribute: [Find("name")][Get] ->  Object.FindObjectsByType<GameObject>.foreach().GetComponent<BaseType).First()
                         // Type: Component
                         // Available tag-attributes: IncludeInactive, StableSort, IgnoreSelf
+                        // No [Add] support
                         
                         var findParam = Attribute.GetFindParam(syntaxNode, compilation);
                         var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
@@ -173,6 +185,7 @@ namespace LurkingNinja.SourceGenerator
                         // Attribute: [Find("name")][Get] ->   Object.FindObjectsByType<GameObject>.foreach().GetComponents<BaseType).All()
                         // Type: Component[]
                         // Available tag-attributes: IncludeInactive, StableSort, IgnoreSelf
+                        // No [Add] support
 
                         var findParam = Attribute.GetFindParam(syntaxNode, compilation);
                         var strIncludeInactive = Helper.Toggle(Attribute.HasIncludeInactive(syntaxNode),
@@ -237,6 +250,7 @@ namespace LurkingNinja.SourceGenerator
                     {
                         // Attribute: [FindWithTag("tag")][Get] -> GameObject.FindGameObjectsWithTag(tagName).each().GetComponents<BaseType>().All()
                         // Type: Component[]
+                        // No [Add] support 
 
                         var findParam = Attribute.GetFindWithTagParam(syntaxNode, compilation);
                         var doArray = Helper.Toggle(isArray, ".ToArray()");

@@ -110,6 +110,26 @@ private BoxCollider[] getAllBoxCollidersOnTaggedGameObjects;
 ```
 <br>
 
+#### Add
+In most aspects ```[Add]``` is similar to [[Get]](#get) so please see that entry too, everything is written there applies to ```[Add]``` as well.
+```[Add]``` will query the Component as Get but if it finds none, then will add one Component to the game object.
+
+Examples:
+```csharp
+// Find the first BoxCollider component on the current GameObject.
+// If there is none, add one.
+// Also known as GetComponent<BoxCollider>().
+[Add][SerializeField]
+private BoxCollider getBoxCollider;
+
+// Find all BoxCollider components on the current GameObject.
+// If there is none, add one.
+// Also known as GetComponents<BoxCollider>().
+[Add][SerializeField]
+private BoxCollider[] getBoxColliders;
+```
+<br>
+
 #### Find
 This attribute generates a [GameObject.Find(gameObjectName)](https://docs.unity3d.com/ScriptReference/GameObject.Find.html). The ```gameObjectName``` is a
 ```string``` parameter and should be passed in the ```Find``` attribute.
@@ -263,3 +283,4 @@ This attribute only usable with [Find](#find) and causing the found game objects
 - Reintroduce asset referencing (GetInAssets)
 - Develop filtering
 - Add C# class (```[Depends]``` - ```[Provides]```) dependency injection
+- Check if we can have a [Require] attribute for entries (throwing warning or error in console).

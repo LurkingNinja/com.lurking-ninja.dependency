@@ -59,12 +59,30 @@ namespace Tests.Editor
         }
 
         [Test]
+        public void AddComponent()
+        {
+            refFindTestRun.GetnoHingeJointUntilAdded = null;
+            refFindTestRun.InitializeInEditor();
+            Assert.IsNotNull(refFindTestRun.GetnoHingeJointUntilAdded);
+            Assert.IsInstanceOf<HingeJoint>(refFindTestRun.GetnoHingeJointUntilAdded);
+        }
+
+        [Test]
         public void GetManyComponents()
         {
             refFindTestRun.GetgetManyBoxColliders = null;
             refFindTestRun.InitializeInEditor();
             Assert.IsNotNull(refFindTestRun.GetgetManyBoxColliders);
             Assert.AreEqual(2, refFindTestRun.GetgetManyBoxColliders.Length);
+        }
+        
+        [Test]
+        public void AddManyComponents()
+        {
+            refFindTestRun.GetnoSphereCollidersUntilAdded = null;
+            refFindTestRun.InitializeInEditor();
+            Assert.IsNotNull(refFindTestRun.GetnoSphereCollidersUntilAdded);
+            Assert.AreEqual(1, refFindTestRun.GetnoSphereCollidersUntilAdded.Length);
         }
         
         [Test]

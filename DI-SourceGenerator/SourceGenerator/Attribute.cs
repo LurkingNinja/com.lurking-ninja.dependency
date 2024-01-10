@@ -13,6 +13,7 @@ namespace LurkingNinja.SourceGenerator
         private const string GENERATE_INITIALIZERS = nameof(GenerateInitializers);
         private const string GENERATE_ON_VALIDATE = nameof(GenerateOnValidate);
         private const string GET = nameof(Get);
+        private const string ADD = nameof(Add);
         private const string GET_IN_CHILDREN = nameof(GetInChildren);
         private const string GET_IN_PARENT = nameof(GetInParent);
         private const string IGNORE_SELF = nameof(IgnoreSelf);
@@ -25,7 +26,7 @@ namespace LurkingNinja.SourceGenerator
 
         private static readonly string[] _validBaseAttributes =
         {
-            FIND, FIND_WITH_TAG, GET, GET_IN_CHILDREN, GET_IN_PARENT
+            FIND, FIND_WITH_TAG, GET, ADD, GET_IN_CHILDREN, GET_IN_PARENT
         };
 
         private static readonly string[] _validGameObjectAttributes =
@@ -35,7 +36,7 @@ namespace LurkingNinja.SourceGenerator
 
         private static readonly string[] _validComponentAttributes =
         {
-            GET, GET_IN_CHILDREN, GET_IN_PARENT
+            GET, ADD, GET_IN_CHILDREN, GET_IN_PARENT
         };
 
         internal static bool HasFind(SyntaxNode node) => Helper.HasAttribute(node, FIND);
@@ -50,7 +51,9 @@ namespace LurkingNinja.SourceGenerator
         internal static bool HasGenerateOnValidate(ClassDeclarationSyntax node) =>
             Helper.HasAttribute(node, GENERATE_ON_VALIDATE)
             || HasGenerateInitializers(node);
-        internal static bool HasGet(SyntaxNode node) => Helper.HasAttribute(node, GET);
+        internal static bool HasGet(SyntaxNode node) =>
+            Helper.HasAttribute(node, GET) || Helper.HasAttribute(node, ADD);
+        internal static bool HasAdd(SyntaxNode node) => Helper.HasAttribute(node, ADD);
         internal static bool HasGetInChildren(SyntaxNode node) => Helper.HasAttribute(node, GET_IN_CHILDREN);
         internal static bool HasGetInParent(SyntaxNode node) => Helper.HasAttribute(node, GET_IN_PARENT);
         internal static bool HasIgnoreSelf(SyntaxNode node) => Helper.HasAttribute(node, IGNORE_SELF);
