@@ -260,10 +260,14 @@ private void OnValidate() => InitializeInEditor();
             var potentialNamespaceParent = node.Parent;
 
             while (potentialNamespaceParent != null
-                   && !(potentialNamespaceParent is NamespaceDeclarationSyntax))
+                   && !(potentialNamespaceParent is NamespaceDeclarationSyntax) 
+                   && !(potentialNamespaceParent is FileScopedNamespaceDeclarationSyntax))
+            {
                 potentialNamespaceParent = potentialNamespaceParent.Parent;
+            }
+            
 
-            if (!(potentialNamespaceParent is NamespaceDeclarationSyntax namespaceParent)) return nameSpace;
+            if (!(potentialNamespaceParent is BaseNamespaceDeclarationSyntax namespaceParent)) return nameSpace;
             
             nameSpace = namespaceParent.Name.ToString();
 
