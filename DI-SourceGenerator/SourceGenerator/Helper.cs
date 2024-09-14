@@ -11,7 +11,7 @@ namespace LurkingNinja.SourceGenerator
 {
     internal static class Helper
     {
-        private const string FILENAME_POSTFIX = "_codegen.cs";
+        private const string _FILENAME_POSTFIX = "_codegen.cs";
 
         /*
          * {0} name space if exists
@@ -19,7 +19,7 @@ namespace LurkingNinja.SourceGenerator
          * {2} class definition
          * {3} using directives
          */
-        private const string FILE_TEMPLATE = @"#pragma warning disable CS0105 // multiple using directive warning
+        private const string _FILE_TEMPLATE = @"#pragma warning disable CS0105 // multiple using directive warning
 using System.Linq;
 using System.Collections.Generic;
 {3}
@@ -32,7 +32,7 @@ using System.Collections.Generic;
         internal static string FileTemplateResolve(string usingDirectives, string nameSpace, string source)
         {
             var ns = GetNamespaceTemplate(nameSpace);
-            return string.Format(FILE_TEMPLATE,
+            return string.Format(_FILE_TEMPLATE,
                 /*{0}*/ns.Item1,
                 /*{1}*/ns.Item2,
                 /*{2}*/source,
@@ -45,13 +45,13 @@ using System.Collections.Generic;
          * {2} class name
          * {3} class source
          */
-        private const string CLASS_TEMPLATE = @"{0} partial {1}class {2} {{
+        private const string _CLASS_TEMPLATE = @"{0} partial {1}class {2} {{
         {3}
 }}";
 
         internal static string ClassTemplateResolve(
                 string accessor, string sealedOrEmpty, string className, string source) =>
-            string.Format(CLASS_TEMPLATE,
+            string.Format(_CLASS_TEMPLATE,
                 /*{0}*/accessor,
                 /*{1}*/sealedOrEmpty,
                 /*{2}*/className,
@@ -61,26 +61,26 @@ using System.Collections.Generic;
          * {0} source
          * {1} accessor -  private, in tests: public
          */
-        private const string INITIALIZE_EDITOR_TEMPLATE = @"#if UNITY_EDITOR
+        private const string _INITIALIZE_EDITOR_TEMPLATE = @"#if UNITY_EDITOR
 {1} void InitializeInEditor() {{
     {0}
 }}
 #endif";
 
         internal static string InEditorResolve(string methodSource, bool isPublic = false) =>
-            string.Format(INITIALIZE_EDITOR_TEMPLATE,
+            string.Format(_INITIALIZE_EDITOR_TEMPLATE,
                 /*{0}*/methodSource,
                 /*{1}*/Toggle(isPublic, "public", "private"));
         
         /*
          * {0} source
          */
-        private const string INITIALIZE_RUNTIME_TEMPLATE = @"{1} void InitializeInRuntime() {{
+        private const string _INITIALIZE_RUNTIME_TEMPLATE = @"{1} void InitializeInRuntime() {{
     {0}
 }}";
 
         internal static string InRuntimeResolve(string methodSource, bool isPublic = false) =>
-            string.Format(INITIALIZE_RUNTIME_TEMPLATE,
+            string.Format(_INITIALIZE_RUNTIME_TEMPLATE,
                 /*{0}*/methodSource,
                 /*{1}*/Toggle(isPublic, "public", "private"));
 
@@ -238,7 +238,7 @@ private void OnValidate() => InitializeInEditor();
         }
         
         private static void AddSource(SourceProductionContext context, string fileName, string source) =>
-            context.AddSource($"{fileName}{FILENAME_POSTFIX}", source);
+            context.AddSource($"{fileName}{_FILENAME_POSTFIX}", source);
         
         internal static void AddSourceNs(SourceProductionContext ctx, string filename,
                 string usingDirectives, ClassDeclarationSyntax cds, string source, bool log = false)
@@ -296,12 +296,33 @@ private void OnValidate() => InitializeInEditor();
                     : "}");
         }
 
+        private static void GetFileScopedNamespaceUsings(ClassDeclarationSyntax cds, HashSet<string> usings)
+        {
+            SyntaxNode toCheck = cds;
+            while (toCheck != null)
+            {
+                if (toCheck.IsKind(SyntaxKind.NamespaceDeclaration))
+                {
+                    if (!(toCheck is NamespaceDeclarationSyntax ns)) continue;
+                    
+                    foreach (var namespaceChild in ns.ChildNodes())
+                    {
+                        if (namespaceChild.IsKind(SyntaxKind.UsingDirective))
+                            usings.Add(namespaceChild.ToString());
+                    }
+                }
+                toCheck = toCheck.Parent;
+            }
+        }
+        
         internal static string GetUsingDirectives(ClassDeclarationSyntax cds)
         {
             var usingDirectives = new HashSet<string>();
             foreach (var child in cds.SyntaxTree.GetRoot().ChildNodes())
                 if (child.IsKind(SyntaxKind.UsingDirective))
                     usingDirectives.Add(child.ToString());
+
+            GetFileScopedNamespaceUsings(cds, usingDirectives);
             usingDirectives.Add("using System;");
             usingDirectives.Add("using UnityEngine;");
 
