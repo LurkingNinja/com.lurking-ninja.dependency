@@ -1,10 +1,10 @@
-﻿using System.Linq;
-using LurkingNinja.Attributes;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-namespace LurkingNinja.SourceGenerator
+﻿namespace LurkingNinja.SourceGenerator
 {
+    using Dependency.Attributes;
+    using System.Linq;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+
     internal static class Attribute
     {
         private const string _FIND = nameof(Find);

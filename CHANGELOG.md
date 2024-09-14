@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.6] - 2024-09-14
+- Usings under namespace support added
+- Move to proper LurkingNinja.Dependency namespace
+### TODO
+- Reintroduce asset referencing (GetInAssets)
+- Develop filtering
+- Add C# class (```[Depends]``` - ```[Provides]```) dependency injection
+- Check if we can have a [Require] attribute for entries (throwing warning or error in console).
+
 ## [0.0.5] - 2024-01-10
 - [Add] attribute
 ### TODO

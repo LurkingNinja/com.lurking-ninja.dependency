@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace LurkingNinja.Attributes
+﻿namespace LurkingNinja.Dependency.Attributes
 {
+    using System;
+
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class SkipNullCheck : Attribute
     {
