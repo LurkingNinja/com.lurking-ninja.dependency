@@ -3,8 +3,5 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class GenerateOnValidate : Attribute
-    {
-        public GenerateOnValidate() {}
-    }
+    public class GenerateOnValidate : Attribute {}
 }

@@ -3,8 +3,5 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class GenerateAwake : Attribute
-    {
-        public GenerateAwake() {}
-    }
+    public class GenerateAwake : Attribute {}
 }

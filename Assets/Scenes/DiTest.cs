@@ -1,10 +1,11 @@
-using LurkingNinja.Attributes;
 using UnityEngine;
 
 namespace DoTest
 {
+    using LurkingNinja.Dependency.Attributes;
+
     [GenerateOnValidate]
-    public partial class DiTest : MonoBehaviour
+    public sealed partial class DiTest : MonoBehaviour
     {
         [Get][SerializeField]
         private BoxCollider[] get_BoxColliders;

@@ -24,17 +24,17 @@
         private const string _STABLE_SORT = nameof(StableSort);
         private const string _DI_TEST_HELPERS = nameof(DiTestHelpers);
 
-        private static readonly string[] _ValidBaseAttributes =
+        private static readonly string[] _VALID_BASE_ATTRIBUTES =
         {
             _FIND, _FIND_WITH_TAG, _GET, _ADD, _GET_IN_CHILDREN, _GET_IN_PARENT
         };
 
-        private static readonly string[] _ValidGameObjectAttributes =
+        private static readonly string[] _VALID_GAME_OBJECT_ATTRIBUTES =
         {
             _FIND, _FIND_WITH_TAG
         };
 
-        private static readonly string[] _ValidComponentAttributes =
+        private static readonly string[] _VALID_COMPONENT_ATTRIBUTES =
         {
             _GET, _ADD, _GET_IN_CHILDREN, _GET_IN_PARENT
         };
@@ -70,13 +70,13 @@
             Helper.GetAttributeParam(syntaxNode, _FIND_WITH_TAG, "tagName", compilation);
 
         internal static bool HasAnyValidAttribute(SyntaxNode syntaxNode) =>
-            _ValidBaseAttributes.Any(attribute => Helper.HasAttribute(syntaxNode, attribute));
+            _VALID_BASE_ATTRIBUTES.Any(attribute => Helper.HasAttribute(syntaxNode, attribute));
         
         internal static bool HasGameObjectAttribute(SyntaxNode syntaxNode) =>
-            _ValidGameObjectAttributes.Any(attribute => Helper.HasAttribute(syntaxNode, attribute));
+            _VALID_GAME_OBJECT_ATTRIBUTES.Any(attribute => Helper.HasAttribute(syntaxNode, attribute));
 
         internal static bool HasComponentAttribute(SyntaxNode syntaxNode) =>
-            _ValidComponentAttributes.Any(attribute => Helper.HasAttribute(syntaxNode, attribute));
+            _VALID_COMPONENT_ATTRIBUTES.Any(attribute => Helper.HasAttribute(syntaxNode, attribute));
 
         internal static bool HasTestHelpers(ClassDeclarationSyntax syntaxNode) =>
             Helper.HasAttribute(syntaxNode, _DI_TEST_HELPERS);

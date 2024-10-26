@@ -3,8 +3,5 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class SkipNullCheck : Attribute
-    {
-        public SkipNullCheck() {}
-    }
+    public class SkipNullCheck : Attribute {}
 }

@@ -3,8 +3,5 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class IgnoreSelf : Attribute
-    {
-        public IgnoreSelf() {}
-    }
+    public class IgnoreSelf : Attribute {}
 }

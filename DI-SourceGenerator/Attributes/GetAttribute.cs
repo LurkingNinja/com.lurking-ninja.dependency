@@ -3,8 +3,5 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class Get : Attribute
-    {
-        public Get() {}
-    }
+    public class Get : Attribute {}
 }

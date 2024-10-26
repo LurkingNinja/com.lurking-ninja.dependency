@@ -26,7 +26,7 @@ namespace Tests.Editor
         public void Find()
         {
             refFindTestRun.GetfindDirectionalLight = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindDirectionalLight);
             Assert.AreNotSame(refFindTestRun.gameObject, refFindTestRun.GetfindDirectionalLight);
         }
@@ -35,7 +35,7 @@ namespace Tests.Editor
         public void FindArray_IgnoreSelf()
         {
             refFindTestRun.GetfindArrayByName = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindArrayByName);
             Assert.AreEqual(3, refFindTestRun.GetfindArrayByName.Length);
         }
@@ -44,7 +44,7 @@ namespace Tests.Editor
         public void FindList_IncludeInactive()
         {
             refFindTestRun.GetfindListByName = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindListByName);
             Assert.AreEqual(5, refFindTestRun.GetfindListByName.Count);
         }
@@ -53,7 +53,7 @@ namespace Tests.Editor
         public void GetComponent()
         {
             refFindTestRun.GetgetBoxCollider = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetgetBoxCollider);
             Assert.IsInstanceOf<BoxCollider>(refFindTestRun.GetgetBoxCollider);
         }
@@ -62,7 +62,7 @@ namespace Tests.Editor
         public void AddComponent()
         {
             refFindTestRun.GetnoHingeJointUntilAdded = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetnoHingeJointUntilAdded);
             Assert.IsInstanceOf<HingeJoint>(refFindTestRun.GetnoHingeJointUntilAdded);
         }
@@ -71,7 +71,7 @@ namespace Tests.Editor
         public void GetManyComponents()
         {
             refFindTestRun.GetgetManyBoxColliders = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetgetManyBoxColliders);
             Assert.AreEqual(2, refFindTestRun.GetgetManyBoxColliders.Length);
         }
@@ -80,7 +80,7 @@ namespace Tests.Editor
         public void AddManyComponents()
         {
             refFindTestRun.GetnoSphereCollidersUntilAdded = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetnoSphereCollidersUntilAdded);
             Assert.AreEqual(1, refFindTestRun.GetnoSphereCollidersUntilAdded.Length);
         }
@@ -89,7 +89,7 @@ namespace Tests.Editor
         public void GetComponentOnManyGameObjects()
         {
             refFindTestRun.GetfindFirstBoxColliderOnManyGameObject = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindFirstBoxColliderOnManyGameObject);
             Assert.IsInstanceOf<BoxCollider>(refFindTestRun.GetfindFirstBoxColliderOnManyGameObject);
         }
@@ -98,7 +98,7 @@ namespace Tests.Editor
         public void GetManyComponentsOnManyGameObjects()
         {
             refFindTestRun.GetfindManyBoxColliderOnManyGameObject = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindManyBoxColliderOnManyGameObject);
             Assert.AreEqual(3, refFindTestRun.GetfindManyBoxColliderOnManyGameObject.Length);
         }
@@ -107,7 +107,7 @@ namespace Tests.Editor
         public void FindWithTag()
         {
             refFindTestRun.GetfindMainCameraWithTag = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindMainCameraWithTag);
             if (Camera.main != null)
                 Assert.AreSame(Camera.main.gameObject, refFindTestRun.GetfindMainCameraWithTag);
@@ -117,7 +117,7 @@ namespace Tests.Editor
         public void FindGameObjectsWithTag()
         {
             refFindTestRun.GetfindEditorOnlyGameObjects = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindEditorOnlyGameObjects);
             Assert.AreEqual(3, refFindTestRun.GetfindEditorOnlyGameObjects.Length);
         }
@@ -126,7 +126,7 @@ namespace Tests.Editor
         public void FindComponentWithTag()
         {
             refFindTestRun.GetfindFirstMeshRendererGameObjectsWithTag = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindFirstMeshRendererGameObjectsWithTag);
             Assert.IsInstanceOf<MeshRenderer>(refFindTestRun.GetfindFirstMeshRendererGameObjectsWithTag);
         }
@@ -135,7 +135,7 @@ namespace Tests.Editor
         public void FindManyComponentsWithTag()
         {
             refFindTestRun.GetfindManyMeshRendererGameObjectsWithTag = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindManyMeshRendererGameObjectsWithTag);
             Assert.AreEqual(2, refFindTestRun.GetfindManyMeshRendererGameObjectsWithTag.Length);
         }
@@ -144,7 +144,7 @@ namespace Tests.Editor
         public void FindFirstComponentInChildren()
         {
             refFindTestRun.GetfindFirstRigidBodyInChildren = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindFirstRigidBodyInChildren);
             Assert.IsInstanceOf<Rigidbody>(refFindTestRun.GetfindFirstRigidBodyInChildren);
             Assert.AreSame(
@@ -155,7 +155,7 @@ namespace Tests.Editor
         public void FindFirstComponentInChildrenExcludeSelf()
         {
             refFindTestRun.GetfindFirstRigidBodyInChildrenExcludeSelf = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindFirstRigidBodyInChildrenExcludeSelf);
             Assert.IsInstanceOf<Rigidbody>(refFindTestRun.GetfindFirstRigidBodyInChildrenExcludeSelf);
             Assert.AreNotSame(refFindTestRun.gameObject,
@@ -166,7 +166,7 @@ namespace Tests.Editor
         public void FindManyComponentInChildren()
         {
             refFindTestRun.GetfindRigidBodiesInChildren = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindRigidBodiesInChildren);
             Assert.AreEqual(2, refFindTestRun.GetfindRigidBodiesInChildren.Length);
         }
@@ -175,7 +175,7 @@ namespace Tests.Editor
         public void FindFirstComponentInParent()
         {
             refFindTestRun.GetfindFirstRigidBodyInParentExcludeSelf = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindFirstRigidBodyInParentExcludeSelf);
             Assert.IsInstanceOf<Rigidbody>(refFindTestRun.GetfindFirstRigidBodyInParentExcludeSelf);
             Assert.AreNotSame(refFindTestRun.gameObject,
@@ -186,7 +186,7 @@ namespace Tests.Editor
         public void FindManyComponentInParent()
         {
             refFindTestRun.GetfindRigidBodiesInParent = null;
-            refFindTestRun.InitializeInEditor();
+            refFindTestRun.InjectDependenciesInEditor();
             Assert.IsNotNull(refFindTestRun.GetfindRigidBodiesInParent);
             Assert.AreEqual(2, refFindTestRun.GetfindRigidBodiesInParent.Length);
         }

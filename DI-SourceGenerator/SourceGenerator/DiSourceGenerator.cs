@@ -132,8 +132,12 @@
                         // Type: Component
 
                         oneLine.Append("{ var temp = ").Append("GetComponent<").Append(baseType).AppendLine(">();");
-                        if (hasAdd) oneLine
-                            .Append("if (temp == null) temp = gameObject.AddComponent<").Append(baseType).AppendLine(">();");
+                        if (hasAdd)
+                        {
+                            oneLine.Append("if (temp == null) temp = gameObject.AddComponent<")
+                                    .Append(baseType).AppendLine(">();");
+                        }
+
                         oneLine.Append(leftHandSide).Append("temp").AppendLine("; }");
 
                     } else if (isCollection && !isGameObjectBase && hasGet && !hasFind && !hasFindWithTag)
@@ -146,9 +150,12 @@
                         
                         oneLine.Append("{ List<").Append(baseType).Append("> temp = new(").Append("GetComponents<")
                             .Append(baseType).AppendLine(">());");
-                        if (hasAdd) oneLine
-                            .Append("if (temp == null || temp.Count == 0)")
-                            .Append(" temp.Add(gameObject.AddComponent<").Append(baseType).AppendLine(">());");
+                        if (hasAdd)
+                        {
+                            oneLine.Append("if (temp == null || temp.Count == 0)")
+                                    .Append(" temp.Add(gameObject.AddComponent<").Append(baseType).AppendLine(">());");
+                        }
+
                         oneLine.Append(leftHandSide).Append("temp").Append(doArray).AppendLine("; }");
                         
                     } else if (!isCollection && !isGameObjectBase && hasFind && hasGet)
@@ -328,11 +335,13 @@
 
                     } else continue;
 
-                    if (doTestHelpers) testLines
-                        .Append("public ").Append(type).Append(" Get").Append(fieldName)
-                        .Append(" { get => ").Append(fieldName)
-                        .Append("; set => ").Append(fieldName).AppendLine(" = value; }");
-                    
+                    if (doTestHelpers)
+                    {
+                        testLines.Append("public ").Append(type).Append(" Get").Append(fieldName)
+                                .Append(" { get => ").Append(fieldName)
+                                .Append("; set => ").Append(fieldName).AppendLine(" = value; }");
+                    }
+
                     if (injectInEditor)
                     {
                         editorSource.AppendLine(oneLine.ToString());
@@ -350,8 +359,8 @@
                 if (numberOfEntriesRuntime > 0)
                     sourceBuilder.AppendLine(Helper.InRuntimeResolve(runtimeSource.ToString(), doTestHelpers));
      
-                if (Attribute.HasGenerateOnValidate(cds)) sourceBuilder.AppendLine(Helper.ON_VALIDATE_TEMPLATE);
-                if (Attribute.HasGenerateAwake(cds)) sourceBuilder.AppendLine(Helper.AWAKE_TEMPLATE);
+                if (Attribute.HasGenerateOnValidate(cds)) sourceBuilder.AppendLine(Helper._ON_VALIDATE_TEMPLATE);
+                if (Attribute.HasGenerateAwake(cds)) sourceBuilder.AppendLine(Helper._AWAKE_TEMPLATE);
 
                 if (doTestHelpers) sourceBuilder.AppendLine(testLines.ToString());
                 

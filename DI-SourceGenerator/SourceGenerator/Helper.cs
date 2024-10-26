@@ -1,7 +1,6 @@
 ﻿namespace LurkingNinja.SourceGenerator
 {
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -29,7 +28,7 @@ using System.Collections.Generic;
     {2}
 {1}";
 
-        internal static string FileTemplateResolve(string usingDirectives, string nameSpace, string source)
+        private static string FileTemplateResolve(string usingDirectives, string nameSpace, string source)
         {
             var ns = GetNamespaceTemplate(nameSpace);
             return string.Format(_FILE_TEMPLATE,
@@ -45,7 +44,7 @@ using System.Collections.Generic;
          * {2} class name
          * {3} class source
          */
-        private const string _CLASS_TEMPLATE = @"{0} partial {1}class {2} {{
+        private const string _CLASS_TEMPLATE = @"{0} {1}partial class {2} {{
         {3}
 }}";
 
@@ -62,7 +61,7 @@ using System.Collections.Generic;
          * {1} accessor -  private, in tests: public
          */
         private const string _INITIALIZE_EDITOR_TEMPLATE = @"#if UNITY_EDITOR
-{1} void InitializeInEditor() {{
+{1} void InjectDependenciesInEditor() {{
     {0}
 }}
 #endif";
@@ -75,7 +74,7 @@ using System.Collections.Generic;
         /*
          * {0} source
          */
-        private const string _INITIALIZE_RUNTIME_TEMPLATE = @"{1} void InitializeInRuntime() {{
+        private const string _INITIALIZE_RUNTIME_TEMPLATE = @"{1} void InjectDependenciesInRuntime() {{
     {0}
 }}";
 
@@ -84,10 +83,10 @@ using System.Collections.Generic;
                 /*{0}*/methodSource,
                 /*{1}*/Toggle(isPublic, "public", "private"));
 
-        internal const string AWAKE_TEMPLATE = @"private void private void Awake() => InitializeInRuntime();";
+        internal const string _AWAKE_TEMPLATE = @"private void private void Awake() => InjectDependenciesInRuntime();";
 
-        internal const string ON_VALIDATE_TEMPLATE = @"#if UNITY_EDITOR
-private void OnValidate() => InitializeInEditor();
+        internal const string _ON_VALIDATE_TEMPLATE = @"#if UNITY_EDITOR
+private void OnValidate() => InjectDependenciesInEditor();
 #endif";
         
         internal static string GetBaseType(string type) => type
@@ -137,7 +136,7 @@ private void OnValidate() => InitializeInEditor();
         }
 
         internal static string GetAccessOfClass(ClassDeclarationSyntax cds) =>
-            IsPublic(cds) ? "public" : IsPrivate(cds) ? "private" : "internal";
+            IsPublic(cds) ? "public " : IsPrivate(cds) ? "private " : "internal ";
 
         internal static ClassDeclarationSyntax GetClassOf(SyntaxNode node)
         {
@@ -241,14 +240,10 @@ private void OnValidate() => InitializeInEditor();
             context.AddSource($"{fileName}{_FILENAME_POSTFIX}", source);
         
         internal static void AddSourceNs(SourceProductionContext ctx, string filename,
-                string usingDirectives, ClassDeclarationSyntax cds, string source, bool log = false)
+                string usingDirectives, ClassDeclarationSyntax cds, string source)
         {
             source = FileTemplateResolve(usingDirectives, GetNamespace(cds), source);
             AddSource(ctx, filename, source);
-            
-            if (!log) return;
-            //ctx.ReportDiagnostic(Diagnostic.Create(logMessage, cds.GetLocation(), source));
-            Log(source);
         }
 
         internal static string Toggle(bool isOn, string ifOn) => isOn ? ifOn : string.Empty;
@@ -319,8 +314,7 @@ private void OnValidate() => InitializeInEditor();
         {
             var usingDirectives = new HashSet<string>();
             foreach (var child in cds.SyntaxTree.GetRoot().ChildNodes())
-                if (child.IsKind(SyntaxKind.UsingDirective))
-                    usingDirectives.Add(child.ToString());
+                if (child.IsKind(SyntaxKind.UsingDirective))usingDirectives.Add(child.ToString());
 
             GetFileScopedNamespaceUsings(cds, usingDirectives);
             usingDirectives.Add("using System;");
@@ -336,18 +330,16 @@ private void OnValidate() => InitializeInEditor();
             if (!hasSkipNullCheck)
             {
                 oneLine.Append("if (").Append(fieldName).Append(" == null");
-                if (isArray) oneLine
-                    .Append(" || ").Append(fieldName).Append(".Length == 0");
-                else if (isList) oneLine
-                    .Append(" || ").Append(fieldName).Append(".Count == 0");
+                if (isArray)
+                    oneLine.Append(" || ").Append(fieldName).Append(".Length == 0");
+                else if (isList)
+                    oneLine.Append(" || ").Append(fieldName).Append(".Count == 0");
+
                 oneLine.Append(") ");
             }
             oneLine.Append(fieldName).Append(" = ");
             
             return oneLine.ToString();
         }
-
-        internal static void Log(string text) =>
-            File.AppendAllText("D:\\DI-SourceGenerator.log", $"{text}\n");
     }
 }

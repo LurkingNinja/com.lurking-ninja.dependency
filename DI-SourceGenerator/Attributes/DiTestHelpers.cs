@@ -3,8 +3,5 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class DiTestHelpers : Attribute
-    {
-        public DiTestHelpers() {}
-    }
+    public class DiTestHelpers : Attribute {}
 }

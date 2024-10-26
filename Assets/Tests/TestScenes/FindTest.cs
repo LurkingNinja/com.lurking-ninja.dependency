@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using LurkingNinja.Attributes;
 using UnityEngine;
 
 namespace Tests.TestScenes
 {
+    using LurkingNinja.Dependency.Attributes;
+
     [DiTestHelpers]
     public partial class FindTestRun : MonoBehaviour
     {

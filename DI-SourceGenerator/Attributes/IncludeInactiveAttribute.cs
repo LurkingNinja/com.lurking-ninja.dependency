@@ -3,8 +3,5 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class IncludeInactive : Attribute
-    {
-        public IncludeInactive() {}
-    }
+    public class IncludeInactive : Attribute {}
 }

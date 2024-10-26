@@ -3,8 +3,5 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class StableSort : Attribute
-    {
-        public StableSort() {}
-    }
+    public class StableSort : Attribute {}
 }

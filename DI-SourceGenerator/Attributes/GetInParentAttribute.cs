@@ -3,8 +3,5 @@
     using System;
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class GetInParent : Attribute
-    {
-        public GetInParent() {}
-    }
+    public class GetInParent : Attribute {}
 }
