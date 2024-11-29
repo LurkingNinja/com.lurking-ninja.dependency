@@ -1,18 +1,22 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.1.0] - 2024-10-26
-### Added
+## [0.1.1] - 2024-11-29
 ### Changed
-- InitializeInEditor became InjectDependenciesInEditor
-- InitializeInRuntime became InjectDependenciesInRuntime
-- partial sealed order fixed to sealed partial
+- Fix #4 - messy generated code
 
 ## TODO
 - Reintroduce asset referencing (GetInAssets)
 - Develop filtering
 - Add C# class (```[Depends]``` - ```[Provides]```) dependency injection
 - Check if we can have a [Require] attribute for entries (throwing warning or error in console).
+
+## [0.1.0] - 2024-10-26
+### Added
+### Changed
+- InitializeInEditor became InjectDependenciesInEditor
+- InitializeInRuntime became InjectDependenciesInRuntime
+- partial sealed order fixed to sealed partial
 
 ## [0.0.6] - 2024-09-14
 ### Added

@@ -25,7 +25,7 @@ using System.Collections.Generic;
 #pragma warning restore CS0105 // multiple using directive warning
 
 {0}
-    {2}
+{2}
 {1}";
 
         private static string FileTemplateResolve(string usingDirectives, string nameSpace, string source)
@@ -44,9 +44,9 @@ using System.Collections.Generic;
          * {2} class name
          * {3} class source
          */
-        private const string _CLASS_TEMPLATE = @"{0} {1}partial class {2} {{
-        {3}
-}}";
+        private const string _CLASS_TEMPLATE = @"    {0} {1}partial class {2}
+    {{
+{3}    }}";
 
         internal static string ClassTemplateResolve(
                 string accessor, string sealedOrEmpty, string className, string source) =>
@@ -61,9 +61,9 @@ using System.Collections.Generic;
          * {1} accessor -  private, in tests: public
          */
         private const string _INITIALIZE_EDITOR_TEMPLATE = @"#if UNITY_EDITOR
-{1} void InjectDependenciesInEditor() {{
-    {0}
-}}
+        {1} void InjectDependenciesInEditor()
+        {{
+{0}        }}
 #endif";
 
         internal static string InEditorResolve(string methodSource, bool isPublic = false) =>
@@ -74,9 +74,8 @@ using System.Collections.Generic;
         /*
          * {0} source
          */
-        private const string _INITIALIZE_RUNTIME_TEMPLATE = @"{1} void InjectDependenciesInRuntime() {{
-    {0}
-}}";
+        private const string _INITIALIZE_RUNTIME_TEMPLATE = @"        {1} void InjectDependenciesInRuntime() {{
+{0}        }}";
 
         internal static string InRuntimeResolve(string methodSource, bool isPublic = false) =>
             string.Format(_INITIALIZE_RUNTIME_TEMPLATE,
@@ -86,7 +85,7 @@ using System.Collections.Generic;
         internal const string _AWAKE_TEMPLATE = @"private void private void Awake() => InjectDependenciesInRuntime();";
 
         internal const string _ON_VALIDATE_TEMPLATE = @"#if UNITY_EDITOR
-private void OnValidate() => InjectDependenciesInEditor();
+        private void OnValidate() => InjectDependenciesInEditor();
 #endif";
         
         internal static string GetBaseType(string type) => type

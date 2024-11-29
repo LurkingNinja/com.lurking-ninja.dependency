@@ -7,7 +7,7 @@ namespace DoTest
     [GenerateOnValidate]
     public sealed partial class DiTest : MonoBehaviour
     {
-        [Get][SerializeField]
+        [Get][SerializeField][InjectInRuntime]
         private BoxCollider[] get_BoxColliders;
         
         [Get][field: SerializeField]
