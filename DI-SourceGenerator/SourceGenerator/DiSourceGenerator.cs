@@ -74,7 +74,7 @@
                     var baseType = Helper.GetBaseType(type);
                     var isGameObjectBase = baseType == "GameObject";
 
-                    oneLine.Clear();
+                    oneLine.Clear().Append("            ");
 
                     var leftHandSide =
                         Helper.GetLeftHandSide(!Attribute.HasSkipNullCheck(syntaxNode), fieldName, isArray, isList);
@@ -134,11 +134,11 @@
                         oneLine.Append("{ var temp = ").Append("GetComponent<").Append(baseType).AppendLine(">();");
                         if (hasAdd)
                         {
-                            oneLine.Append("if (temp == null) temp = gameObject.AddComponent<")
+                            oneLine.Append("            if (temp == null) temp = gameObject.AddComponent<")
                                     .Append(baseType).AppendLine(">();");
                         }
 
-                        oneLine.Append(leftHandSide).Append("temp").AppendLine("; }");
+                        oneLine.Append("            ").Append(leftHandSide).Append("temp").AppendLine("; }");
 
                     } else if (isCollection && !isGameObjectBase && hasGet && !hasFind && !hasFindWithTag)
                     {
@@ -152,11 +152,11 @@
                             .Append(baseType).AppendLine(">());");
                         if (hasAdd)
                         {
-                            oneLine.Append("if (temp == null || temp.Count == 0)")
+                            oneLine.Append("            if (temp == null || temp.Count == 0)")
                                     .Append(" temp.Add(gameObject.AddComponent<").Append(baseType).AppendLine(">());");
                         }
 
-                        oneLine.Append(leftHandSide).Append("temp").Append(doArray).AppendLine("; }");
+                        oneLine.Append("            ").Append(leftHandSide).Append("temp").Append(doArray).AppendLine("; }");
                         
                     } else if (!isCollection && !isGameObjectBase && hasFind && hasGet)
                     {
@@ -181,10 +181,10 @@
                                     .Append("if (").Append(doIgnoreSelf)
                                     .Append("go.name == \"").Append(findParam).AppendLine("\") {")
                                     .Append("if (go.TryGetComponent<").Append(baseType).AppendLine(">(out res)) break;")
-                                    .AppendLine("}}")
-                                .Append(leftHandSide).Append("res")
+                                    .AppendLine("           }}")
+                                .Append("           ").Append(leftHandSide).Append("res")
                                 .AppendLine(";")
-                            .AppendLine("}");
+                            .AppendLine("           }");
 
                     } else if (isCollection && !isGameObjectBase && hasFind && hasGet)
                     {
@@ -210,9 +210,9 @@
                                     .Append("if (").Append(doIgnoreSelf)
                                     .Append("go.name == \"").Append(findParam).AppendLine("\") {")
                                     .Append("res.AddRange(go.GetComponents<").Append(baseType).AppendLine(">());")
-                                    .AppendLine("}}")
-                                .Append(leftHandSide).Append("res").Append(doArray).AppendLine(";")
-                            .AppendLine("}");
+                                    .AppendLine("           }}")
+                                .Append("           ").Append(leftHandSide).Append("res").Append(doArray).AppendLine(";")
+                            .AppendLine("           }");
                         
                     } else if (!isCollection && isGameObjectBase && hasFindWithTag)
                     {
@@ -246,11 +246,11 @@
                         oneLine
                             .Append("{")
                                 .Append(baseType).AppendLine(" res = null; ")
-                                .Append("foreach (var go in GameObject.FindGameObjectsWithTag(\"")
+                                .Append("            foreach (var go in GameObject.FindGameObjectsWithTag(\"")
                                     .Append(findParam).Append("\")) { if (go.TryGetComponent<")
                                     .Append(baseType).AppendLine(">(out res)) break; }")
-                                .Append(leftHandSide).Append(" res").AppendLine(";")
-                            .AppendLine("}");
+                                .Append("            ").Append(leftHandSide).Append(" res").Append(";")
+                            .AppendLine(" }");
 
                     } else if (isCollection && !isGameObjectBase && hasFindWithTag && hasGet)
                     {
@@ -264,11 +264,11 @@
                         oneLine
                             .Append("{")
                                 .Append("var res = new List<").Append(baseType).AppendLine(">();")
-                                .Append("foreach (var go in GameObject.FindGameObjectsWithTag(\"")
+                                .Append("           foreach (var go in GameObject.FindGameObjectsWithTag(\"")
                                     .Append(findParam).Append("\")) { res.AddRange(go.GetComponents<")
                                     .Append(baseType).AppendLine(">()); }")
-                                .Append(leftHandSide).Append(" res").Append(doArray).AppendLine(";")
-                            .AppendLine("}");
+                                .Append("           ").Append(leftHandSide).Append(" res").Append(doArray).AppendLine(";")
+                            .AppendLine("           }");
 
                     } else if (!isCollection && !isGameObjectBase && hasInChildren)
                     {
