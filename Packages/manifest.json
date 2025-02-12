@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.lurking-ninja.csharp-templates": "https://github.com/LurkingNinja/com.lurking-ninja.csharp-templates.git?path=Packages/com.lurking-ninja.csharp-templates",
-    "com.unity.burst": "1.8.18",
+    "com.unity.burst": "1.8.19",
     "com.unity.collections": "2.5.1",
     "com.unity.ide.rider": "3.0.34",
     "com.unity.inputsystem": "1.11.2",
